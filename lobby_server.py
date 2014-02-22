@@ -1,5 +1,7 @@
 #!./virt_env/bin/python
 
+import game_server
+
 from twisted.internet import reactor
 from twisted.web.server import Site
 from twisted.web.static import File
@@ -15,12 +17,14 @@ For deployment we'll be using the server's addresses, but if we're just
 doing testing it's more convenient to run everything on your own machine.
 Comment and uncomment the following lines as needed.
 """
-# lobbychannel = "http://tetramor.ph/lobby"
-# wampuri = "ws://tetramor.ph:9001"
-# wsuri = "ws://tetramor.ph:9000"
-lobbychannel = "http://localhost/lobby"
-wampuri = "ws://localhost:9001"
-wsuri = "ws://localhost:9000"
+# domain = "tetramor.ph"
+domain = "localhost"
+
+print("Using domain: " + domain)
+lobbychannel = "http://%s/lobby" % domain
+gamechannel = "http://%s/gamechat/" % domain
+wampuri = "ws://%s:9001" % domain
+wsuri = "ws://%s:9000" % domain
 
 class PubSubProtocol(WampServerProtocol):
     """
@@ -30,6 +34,7 @@ class PubSubProtocol(WampServerProtocol):
 
     def onSessionOpen(self):
         self.registerForPubSub(lobbychannel)
+        self.registerForPubSub(gamechannel, True)
 
 class LobbyDataProtocol(WebSocketServerProtocol):
     """
@@ -105,12 +110,13 @@ class LobbyDataFactory(WebSocketServerFactory):
         TODO: All of this. Right now it just uses a tuple as a placeholder.
         """
         if user in self.users.keys():
+#            self.wamp_protocol.registerGameRoom(users[user])
             self.rooms.append((self.users[user], 0))
             self.pushUpdate()
             
     def pushUpdate(self):
         """
-        Dispatch an update to the pub/sub channel
+        Dispatch an update to the lobby channel
         This update contains a complete list of active game rooms
         """
         print("Pushing update to server!")
@@ -134,8 +140,8 @@ if __name__ == '__main__':
     
     # Initialize web server factory on port 8080
     # We're not using this yet but maybe we will in the future?
-    webfactory = Site(File('.'))
-    reactor.listenTCP(8080, webfactory)
+#    webfactory = Site(File('.'))
+#    reactor.listenTCP(8080, webfactory)
 
     # Start the reactor!
     # Because I'm a professional, I'm not going to quote Total Recall here...

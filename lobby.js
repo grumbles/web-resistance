@@ -1,3 +1,9 @@
+/*
+ * lobby.js - clientside scripting for game lobby
+ * TODO:
+ * - Add functionality as needed
+ */
+
 var sock = null;
 var pssession = null;
 
@@ -6,12 +12,12 @@ var pssession = null;
  * doing testing it's more convenient to run everything on your own machine.
  * Comment and uncomment the following lines as needed.
  */
-// var wsuri = "ws://tetramor.ph:9000";
-// var wampuri = "ws://tetramor.ph:9001";
-// var channel = "http://tetramor.ph/lobby";
-var wsuri = "ws://localhost:9000";
-var wampuri = "ws://localhost:9001";
-var channel = "http://localhost/lobby";
+// var domain = "tetramor.ph";
+var domain = "localhost";
+
+var wsuri = "ws://" + domain + ":9000";
+var wampuri = "ws://" + domain + ":9001";
+var channel = "http://" + domain + "/lobby";
 
 var username = null;
 
@@ -25,8 +31,12 @@ $(document).ready(function() {
 			// Do stuff when user presses Enter
 			if(username == null) {
 				// If user's name isn't set, the chat box works as a name input
-				username = $(this).val();
-				sock.send(['setname', username]);
+				if(/^[a-z0-9]+$/i.test($(this).val())) {
+					setName($(this).val());
+				} else {
+					// Disregard non-alphanumeric input
+					$(this).val("Sorry, only alphanumeric characters are allowed");
+				}
 			} else {
 				// If user has a name, just publish messages to the chat
 				var msg = $(this).val();
@@ -91,6 +101,13 @@ function initWS() {
 
     sock.onopen = function() {
 		console.log("connected to " + wsuri);
+
+		// After WS is established, check session storage to see if user has a name
+		if(Storage !== undefined && sessionStorage.username !== undefined) {
+			setName(sessionStorage.username);
+			$('chatinput').val('');
+		}
+		
     }
 
     sock.onclose = function(e) {
@@ -119,7 +136,22 @@ function initWS() {
 			break;
 		}
     }
-	
+}
+
+/*
+ * Sets the user's username.
+ * Sets the page variable and adds the key to local storage, if possible.
+ * If we do more user validation stuff in the future, this can be expanded.
+ */
+function setName(name) {
+	username = name;
+	sock.send(['setname', username]);
+	if(Storage !== undefined) {
+		sessionStorage.setItem("username", username);
+	} else {
+		// User's browser doesn't support Web Storage
+		// TODO: Figure out what to do now.
+	}
 }
 
 /*
@@ -147,7 +179,7 @@ function update(data) {
 	for(var i in data) {
 		var style = 'game' + (i%2==0? ' highlight' : '');
 		$('#gamelist').prepend(
-			'<li class="' + style + '">' + (+data[i][1]) + '/10 - ' + data[i][0] + "'s room</li>"
+			'<li class="' + style + '">' + (+data[i][1]) + '/10 - <a href=game.html?' + data[i][0] + '>' + data[i][0] + "'s room</a></li>"
 		);
 	}
 	
