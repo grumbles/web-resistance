@@ -9,9 +9,10 @@
 // var domain = "tetramor.ph";
 var domain = "localhost";
 
-var wsuri = "ws://" + domain + ":9000";
+var wsuri = "ws://" + domain + ":9002";
 var wampuri = "ws://" + domain + ":9001";
 var pssession;
+var sock;
 var channel;
 
 var username;
@@ -84,11 +85,38 @@ function initWAMP(room) {
 		});
 
 		// Now that WAMP connection is initalized, init WebSocket
-//		initWS();
+		initWS(room);
 	}, function(code, reason) {
 		console.log("Connection dropped... " + reason);
 		pssession = null;
 	});
+}
+
+/*
+ * Initialize WebSocket communication with server.
+ * Also sets some basic behavior - this maybe should be in another function.
+ * Must be called after WAMP initialization is complete
+ */
+function initWS(room) {
+    sock = new WebSocket(wsuri);
+
+    sock.onopen = function() {
+		console.log("connected to " + wsuri);
+		sock.send(['setname', username]);
+		sock.send(['getroom', room]);
+    }
+
+    sock.onclose = function(e) {
+		console.log("connection closed (" + e.code + ")");
+    }
+
+    sock.onmessage = function(e) {
+		handleWS(e.data);
+    }
+}
+
+function handleWS(data) {
+	console.log(data);
 }
 
 /*

@@ -1,6 +1,8 @@
 #!./virt_env/bin/python
 
-import game_server
+from game_server import Game, \
+                        PlayerSocketProtocol, \
+                        PlayerSocketFactory
 
 from twisted.internet import reactor
 from twisted.web.server import Site
@@ -23,6 +25,7 @@ domain = "localhost"
 print("Using domain: " + domain)
 lobbychannel = "http://%s/lobby" % domain
 gamechannel = "http://%s/gamechat/" % domain
+playeruri = "ws://%s:9002" % domain
 wampuri = "ws://%s:9001" % domain
 wsuri = "ws://%s:9000" % domain
 
@@ -56,13 +59,14 @@ class LobbyDataProtocol(WebSocketServerProtocol):
         Change this as needed but make sure the frontend knows!
         """
         if not isBinary:
+            print("Got message:", payload, "from", self.peer)
             part = payload.partition(',')
 
             if part[0] == 'setname':
                 response = self.factory.register(self, part[2])
                 self.sendMessage(response)
-            elif part[0] == 'makeroom':
-                self.factory.makeRoom(self)
+            elif part[0] == 'requpdate':
+                self.factory.pushUpdate()
             else:
                 print("Malformed command:", payload, "from", self.peer)
 
@@ -71,11 +75,11 @@ class LobbyDataProtocol(WebSocketServerProtocol):
         self.factory.deregister(self)
 
 class LobbyDataFactory(WebSocketServerFactory):
-    def __init__(self, url, wampdispatch, debug = False, debugCodePaths = False):
+    def __init__(self, url, gameList, wampdispatch, debug = False, debugCodePaths = False):
         WebSocketServerFactory.__init__(self, url, debug = debug, \
                                         debugCodePaths = debugCodePaths)
-        self.users = {None : 'Server'}   # A map of users to their usernames
-        self.rooms = []                  # List of active rooms
+        self.usernames = {None : 'Server'}   # A map of users to their usernames
+        self.rooms = gameList                  # List of active rooms
         self.wampdispatch = wampdispatch # Dispatch method for our pub/sub
 
     def register(self, user, username):
@@ -87,10 +91,10 @@ class LobbyDataFactory(WebSocketServerFactory):
             'taken':     if the username is already being used by another user
             'collision': if the user already has a username - this shouldn't happen
         """
-        if not user in self.users:
-            if not username in self.users.values():
+        if not user in self.usernames:
+            if not username in self.usernames.values():
                 print("Registering user", user.peer, "as", username)
-                self.users[user] = username
+                self.usernames[user] = username
                 self.wampdispatch(lobbychannel, {'type':'chat', 'user':'Server', 'msg':(username + ' has joined.')})
                 return 'good'
             else:
@@ -100,19 +104,9 @@ class LobbyDataFactory(WebSocketServerFactory):
 
     def deregister(self, user):
         """ Just takes the username out of the registry when the user leaves """
-        if user in self.users:
-            print("Deregistering user", self.users[user])
-            del self.users[user]
-
-    def makeRoom(self, user):
-        """
-        Create a game room for the user.
-        TODO: All of this. Right now it just uses a tuple as a placeholder.
-        """
-        if user in self.users.keys():
-#            self.wamp_protocol.registerGameRoom(users[user])
-            self.rooms.append((self.users[user], 0))
-            self.pushUpdate()
+        if user in self.usernames:
+            print("Deregistering user", self.usernames[user])
+            del self.usernames[user]
             
     def pushUpdate(self):
         """
@@ -120,7 +114,14 @@ class LobbyDataFactory(WebSocketServerFactory):
         This update contains a complete list of active game rooms
         """
         print("Pushing update to server!")
-        self.wampdispatch(lobbychannel, {'type': 'update', 'data' : self.rooms})
+        self.cleanEmptyRooms()
+        roomData = [ (room.roomName, room.getPlayerCount()) for room in self.rooms.values() ]
+        self.wampdispatch(lobbychannel, {'type': 'update', 'data' : roomData})
+
+    def cleanEmptyRooms(self):
+        for key in self.rooms.keys():
+            if self.rooms[key].getPlayerCount() <= 0:
+                self.rooms.pop(key, None)
 
 if __name__ == '__main__':
     import sys
@@ -129,14 +130,20 @@ if __name__ == '__main__':
 
     log.startLogging(sys.stdout)
 
+    gameList = {}
+
     # Initialize pub/sub factory
     psfactory = WampServerFactory(wampuri, debugWamp = True)
     psfactory.protocol = PubSubProtocol
     listenWS(psfactory)
 
     # Initialize client socket factory
-    clientfactory = LobbyDataFactory(wsuri, psfactory.dispatch, debug = False)
+    clientfactory = LobbyDataFactory(wsuri, gameList, psfactory.dispatch, debug = False)
     clientfactory.protocol = LobbyDataProtocol
+
+    # Initialize player socket factory
+    playerfactory = PlayerSocketFactory(playeruri, gameList, clientfactory.pushUpdate, psfactory.dispatch, debug = False)
+    playerfactory.protocol = PlayerSocketProtocol
     
     # Initialize web server factory on port 8080
     # We're not using this yet but maybe we will in the future?
@@ -146,4 +153,5 @@ if __name__ == '__main__':
     # Start the reactor!
     # Because I'm a professional, I'm not going to quote Total Recall here...
     reactor.listenTCP(9000, clientfactory)
+    reactor.listenTCP(9002, playerfactory)
     reactor.run()

@@ -52,7 +52,8 @@ $(document).ready(function() {
 	});
 	
 	$('#newgame').on('click', function() {
-		sock.send('makeroom');
+		sock.send(['requpdate', '']);
+		window.location.href = 'game.html?' + username;
 	});
 });
 
@@ -105,7 +106,7 @@ function initWS() {
 		// After WS is established, check session storage to see if user has a name
 		if(Storage !== undefined && sessionStorage.username !== undefined) {
 			setName(sessionStorage.username);
-			$('chatinput').val('');
+			$('#chatinput').val('');
 		}
 		
     }
@@ -172,6 +173,7 @@ function appendChat(user, message, highlight) {
  * Called when an 'update' message is recieved.
  */
 function update(data) {
+	console.log(data);
 	// First, empty out the current list
 	$('#gamelist').empty();
 	
