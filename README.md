@@ -9,5 +9,5 @@ Sure thing buddy. **The Resistance** is a game of intrigue and mystery, designed
 What you find here is a server to organize games of **The Resistance** through a browser-based client. The project is being developed by a small team of fans, as a part of our Software Engineering course at the New Mexico Institute of Mining & Technology (NMT). Feel free to contact us with any questions or concerns you may have.
 
 ### Software Stack
-| Pub/sub through Autobahn | running on top of Twisted | in Python 2.6 |
-|:------------------------:|:-------------------------:|:-------------:|
+| Pub/sub and WebSocket through Autobahn | running on top of Twisted | in Python 2.6 |
+|:--------------------------------------:|:-------------------------:|:-------------:|
