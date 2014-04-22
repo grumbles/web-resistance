@@ -119,6 +119,7 @@ class LobbyDataFactory(WebSocketServerFactory):
         self.wampdispatch(lobbychannel, {'type': 'update', 'data' : roomData})
 
     def cleanEmptyRooms(self):
+        """ Remove empty games from the room list """
         for key in self.rooms.keys():
             if self.rooms[key].getPlayerCount() <= 0:
                 self.rooms.pop(key, None)

@@ -14,6 +14,10 @@ class Team:
     SPY = 2
 
 class Player(object):
+    """
+    Player object as it's handled in games.
+    Contains game data relevant to this player, and methods to handle it.
+    """
     def __init__(self, socket, username, game):
         self.socket = socket
         socket.setPlayer(self)
@@ -25,15 +29,26 @@ class Player(object):
         self.team = team
 
     def destroy(self):
+        """ Callback on user disconnect """
         self.game.removePlayer(self)
 
 class PlayerSocketProtocol(WebSocketServerProtocol):
+    """
+    WebSocket protocol for handling players.
+    Handles private communication between a player and the server.
+    """
     def onConnect(self, request):
         self.sendMessage("Player socket established")
+        # Assign a temporary name because I'm kind of worried about race conditions
         self.username = "anonymous"
         WebSocketServerProtocol.onConnect(self, request)
 
     def onMessage(self, payload, isBinary):
+        """
+        Parse and respond to commands from the player.
+        The payload is a JS list, formatted here as a comma-delimited string.
+        The first field is a command and the rest is an argument.
+        """
         if not isBinary:
             part = payload.partition(',')
             
