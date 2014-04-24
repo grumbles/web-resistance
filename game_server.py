@@ -24,6 +24,7 @@ class Player(object):
         self.name = username
         self.game = game
         self.team = Team.UNALIGNED
+        self.vote = None
 
     def setTeam(self, team):
         self.team = team
@@ -32,6 +33,19 @@ class Player(object):
         self.ready = True
         print(self.name + " marked as ready to begin!")
         self.game.tryStart()
+
+    def setVote(self, votestr):
+        """
+        Parse a string to set the player's vote status
+        I'm currently overloading this for mission success too
+        It's basically the same operation
+        """
+        if votestr == 'yes':
+            self.vote = True
+        elif votestr == 'no':
+            self.vote = False
+        else:
+            self.vote = None
 
     def sendData(self, data):
         self.socket.sendMessage(data)
@@ -64,12 +78,24 @@ class PlayerSocketProtocol(WebSocketServerProtocol):
             part = payload.partition(',')
             
             if part[0] == 'setname':
+                # Client informs us of this user's name
                 self.username = part[2]  
             elif part[0] == 'getroom':
+                # User wants to join a room; try and report on status
                 response = self.factory.addToRoom(self, self.username, part[2])
                 self.sendMessage(response)
             elif part[0] == 'ready':
+                # Player says they're ready to start
                 self.player.markReady()
+            elif part[0] == 'team':
+                # Player has selected a mission team
+                self.player.game.tryTeam(part[2].split(','), self.player)
+            elif part[0] == 'vote':
+                # Player has voted on something
+                self.player.setVote(part[2])
+            elif part[0] == 'mission':
+                # Player has voted on mission outcome
+                self.player.setVote(part[2])
             else:
                 print("Malformed command:", payload, "from", self.peer)
 
@@ -166,6 +192,13 @@ class Game(object):
         Begin game logic.
         """
         print("HEY YOU GOTTA WRITE THE GAME LOGIC!")
+
+    def tryTeam(self, team, source):
+        """
+        A player has selected a mission team.
+        Make sure the team is valid and the selector is the current captain.
+        """
+        print("This hasn't been implemented yet!")
 
     def destroy(self):
         # Callback on game end
