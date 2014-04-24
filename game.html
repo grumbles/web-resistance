@@ -9,8 +9,25 @@
   </head>
   <body>
 	<div id="statusbar" class="light">
+	  <div id="room">
+		<i>Room Owner:</i>
+	  </div>
+	  <div id="state" align=center>
+		<i>Mission Status:</i>
+		<table style="border-spacing: 30px 5px;"><tr>
+			<td class="mission">
+			<td class="mission">
+			<td class="mission">
+			<td class="mission">
+			<td class="mission">
+		</tr></table>
+		<div id="pregame">(Game not yet started)</div>
+	  </div>
+	  <div id="prompt" align=center>
+		<button id="setready">I am ready to begin the game.</button>
+	  </div>
 	</div>
-	<div>
+	<div style="position: relative;">
 	  <div id="game">
 		<input id="chatinput" type="text">
 		<table id="messagelog">

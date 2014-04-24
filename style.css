@@ -1,23 +1,78 @@
+*:not(h1) {	font: 11px sans-serif; }
+i {	font-style: italic; }
+b { font-style: oblique; }
+
+
 ul {
 	list-style-type: none;
 }
 
+button {
+	-moz-border-radius: 4px;
+    -webkit-border-radius: 4px;
+    border-radius:4px;
+	background-color: #fff;
+	border-width: 1px;
+	border-style: solid;
+	border-color: #bbb;
+	text-decoration: none;
+	cursor: pointer;
+}
+
+button:hover {
+	background-color: #eee;
+}
+
 #statusbar {
+	position: relative;
 	height: 150px;
+	padding: 20px;
+}
+
+#pregame {
+	font-style: oblique;
+	color: #777;
+}
+
+#prompt {
+	position: absolute;
+	bottom: 2px;
+	left: 30%;
+	right: 30%;
 }
 
 #game {
-	
+	position: absolute;
+	top: 2px;
+	left: 0;
 }
 
 #players {
 	width: 200px;
-	float: right;
-	align: top;
+	position: absolute;
+	top: 2px;
+	right: 0;
 }
 
 .highlight { background: #ccc }
 
-.light {
+.light, .mission{
 	border: 1px solid #ccc;
 }
+
+.mission {
+	width: 25px;
+	height: 25px;	
+}
+
+.mission.resist {
+	border-color: #00c;
+	background-color: #9cf;
+	content: "R";
+}
+
+.mission.spies {
+	border-color: #c00;
+	background-color: #fcc;
+}
+

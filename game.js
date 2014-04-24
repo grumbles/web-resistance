@@ -38,6 +38,7 @@ $(document).ready(function() {
 
 	initWAMP(room);
 	appendChat("", "Welcome to " + room + "'s room", true);
+	$("#room").append(room);
 
 	// jQuery functionality for the page
 	$('#chatinput').on('keyup', function(e) {
@@ -53,10 +54,9 @@ $(document).ready(function() {
 		$(this).val('');
 	});
 
-
 	// DEBUG STUFF
-	$('body').append('<p> username=' + username + '</p>');
-	$('body').append('<p>  room id=' + room + ' </p>');
+	// $('body').append('<p> username=' + username + '</p>');
+	// $('body').append('<p>  room id=' + room + ' </p>');
 });
 
 /*
@@ -144,6 +144,7 @@ function update(data) {
 	console.log(data);
 	var plist = $('#players ul:first-child');
 	plist.empty();
+	plist.append('<li class="highlight"><i>Players:</i></li>');
 
 	for(i in data.players)
 		plist.append('<li>' + data.players[i] + '</li>');
@@ -154,4 +155,11 @@ function update(data) {
 	// 		console.log(player);
 	// 	}
 	// }
+}
+
+/*
+ * Sets up initial pregame state
+ */
+function initState() {
+	
 }
