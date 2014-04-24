@@ -158,8 +158,10 @@ function update(data) {
 }
 
 /*
- * Sets up initial pregame state
+ * Sends a message to the server that this player is ready to begin.
  */
-function initState() {
+function setReady() {
+	sock.send(['ready', '']);
+	$("#setready").replaceWith("<i>Waiting for other players...</i>");
 	
 }

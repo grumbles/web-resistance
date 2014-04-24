@@ -28,6 +28,11 @@ class Player(object):
     def setTeam(self, team):
         self.team = team
 
+    def markReady(self):
+        self.ready = True
+        print(self.name + " marked as ready to begin!")
+        self.game.tryStart()
+
     def sendData(self, data):
         self.socket.sendMessage(data)
 
@@ -63,6 +68,8 @@ class PlayerSocketProtocol(WebSocketServerProtocol):
             elif part[0] == 'getroom':
                 response = self.factory.addToRoom(self, self.username, part[2])
                 self.sendMessage(response)
+            elif part[0] == 'ready':
+                self.player.markReady()
             else:
                 print("Malformed command:", payload, "from", self.peer)
 
@@ -135,26 +142,30 @@ class Game(object):
         if self.getPlayerCount() < 0:
             self.destroy()
 
-    # def pushUpdate(self):
-    #     print("Pushing update to players")
-
-    #     update = {'room': self.roomName,
-    #               'state': self.gameState,
-    #               'players': self.players}
-    #     for player in self.players:
-    #         player.sendData(update)
-
     def pushUpdate(self):
         """
         Dispatch a game update through the pubsub channel
         """
         print("Pushing update to server!")
-        update = {'type': 'update',
-                  'room': self.roomName,
+        update = {'room': self.roomName,
                   'state': self.gameState,
                   'players': [ str(p) for p in self.players]}
         self.wampdispatch(self.channel, {'type': 'update', 'data': update})
 
+    def tryStart(self):
+        """
+        If all players are ready, start the game.
+        Called each time a player is marked as ready.
+        """
+        if all([p.ready for p in self.players]) \
+           and len(self.players) >= Game.MIN_PLAYERS and len(self.players) <= Game.MAX_PLAYERS:
+            self.startGame()
+
+    def startGame(self):
+        """
+        Begin game logic.
+        """
+        print("HEY YOU GOTTA WRITE THE GAME LOGIC!")
 
     def destroy(self):
         # Callback on game end
