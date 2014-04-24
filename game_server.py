@@ -28,9 +28,15 @@ class Player(object):
     def setTeam(self, team):
         self.team = team
 
+    def sendData(self, data):
+        self.socket.sendMessage(data)
+
     def destroy(self):
         """ Callback on user disconnect """
         self.game.removePlayer(self)
+
+    def __str__(self):
+        return self.name
 
 class PlayerSocketProtocol(WebSocketServerProtocol):
     """
@@ -68,11 +74,12 @@ class PlayerSocketProtocol(WebSocketServerProtocol):
         self.player = player
 
 class PlayerSocketFactory(WebSocketServerFactory):
-    def __init__(self, url, gameList, updateLobby, wampdispatch, debug = False, debugCodePaths = False):
+    def __init__(self, url, gameList, updateLobby, wampdispatch, gamechannel, debug = False, debugCodePaths = False):
         WebSocketServerFactory.__init__(self, url, debug = debug, \
                                         debugCodePaths = debugCodePaths)
         self.gameList = gameList
         self.wampdispatch = wampdispatch
+        self.gamechannel = gamechannel
         self.updateLobby = updateLobby
 
     def addToRoom(self, user, username, room):
@@ -88,7 +95,7 @@ class PlayerSocketFactory(WebSocketServerFactory):
             response = self.gameList[room].addPlayer(user, username)
         else:
             print("Making new game room: " + room)
-            self.gameList[room] = Game(user, username, self.wampdispatch)
+            self.gameList[room] = Game(user, username, self.wampdispatch, self.gamechannel)
             response = 'ok'
             
         self.updateLobby()
@@ -102,9 +109,10 @@ class Game(object):
     MIN_PLAYERS = 5
     MAX_PLAYERS = 10
 
-    def __init__(self, owner, ownername, wampdispatch):
+    def __init__(self, owner, ownername, wampdispatch, gamechannel):
         self.players = []
         self.wampdispatch = wampdispatch
+        self.channel = gamechannel + ownername
         self.gameState = Game.PREGAME
         
         self.roomName = ownername
@@ -117,6 +125,7 @@ class Game(object):
         if self.getPlayerCount() < Game.MAX_PLAYERS:
             print("Adding player " + username + " to room " + self.roomName)
             self.players.append(Player(user, username, self))
+            self.pushUpdate()
             return 'ok'
         else:
             return 'full'
@@ -125,6 +134,27 @@ class Game(object):
         self.players.remove(player)
         if self.getPlayerCount() < 0:
             self.destroy()
+
+    # def pushUpdate(self):
+    #     print("Pushing update to players")
+
+    #     update = {'room': self.roomName,
+    #               'state': self.gameState,
+    #               'players': self.players}
+    #     for player in self.players:
+    #         player.sendData(update)
+
+    def pushUpdate(self):
+        """
+        Dispatch a game update through the pubsub channel
+        """
+        print("Pushing update to server!")
+        update = {'type': 'update',
+                  'room': self.roomName,
+                  'state': self.gameState,
+                  'players': [ str(p) for p in self.players]}
+        self.wampdispatch(self.channel, {'type': 'update', 'data': update})
+
 
     def destroy(self):
         # Callback on game end

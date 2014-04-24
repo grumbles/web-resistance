@@ -77,6 +77,10 @@ function initWAMP(room) {
 				case 'chat':
 				appendChat(event.user, event.msg, false);
 				break;
+				
+				case 'update':
+				update(event.data);
+				break;
 
 				default:
 				console.log('Unknown response from server...');
@@ -116,7 +120,7 @@ function initWS(room) {
 }
 
 function handleWS(data) {
-	console.log(data);
+	console.log('WS data: ' + data);
 }
 
 /*
@@ -127,7 +131,27 @@ function appendChat(user, message, highlight) {
 	var style = 'message' + (highlight? ' highlight' : '');
 
 	// TODO: Is there a more elegant way to do this?
-	$('#messagelog').append(
+	$('#messagelog').prepend(
 		'<tr class="' + style + '"><td>' + user + '</td><td>' + message + '</td></tr>'
 	);
+}
+
+/*
+ * Handle status updates from the server
+ */
+function update(data) {
+
+	console.log(data);
+	var plist = $('#players ul:first-child');
+	plist.empty();
+
+	for(i in data.players)
+		plist.append('<li>' + data.players[i] + '</li>');
+
+	// // Pregame update
+	// if(data.round == 0) {
+	// 	for(player in data.players) {
+	// 		console.log(player);
+	// 	}
+	// }
 }

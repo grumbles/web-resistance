@@ -143,7 +143,7 @@ if __name__ == '__main__':
     clientfactory.protocol = LobbyDataProtocol
 
     # Initialize player socket factory
-    playerfactory = PlayerSocketFactory(playeruri, gameList, clientfactory.pushUpdate, psfactory.dispatch, debug = False)
+    playerfactory = PlayerSocketFactory(playeruri, gameList, clientfactory.pushUpdate, psfactory.dispatch, gamechannel, debug = False)
     playerfactory.protocol = PlayerSocketProtocol
     
     # Initialize web server factory on port 8080

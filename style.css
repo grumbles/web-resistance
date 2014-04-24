@@ -2,4 +2,22 @@ ul {
 	list-style-type: none;
 }
 
+#statusbar {
+	height: 150px;
+}
+
+#game {
+	
+}
+
+#players {
+	width: 200px;
+	float: right;
+	align: top;
+}
+
 .highlight { background: #ccc }
+
+.light {
+	border: 1px solid #ccc;
+}
