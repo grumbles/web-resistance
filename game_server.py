@@ -25,6 +25,7 @@ class Player(object):
         self.game = game
         self.team = Team.UNALIGNED
         self.vote = None
+        self.ready = False
 
     def setTeam(self, team):
         self.team = team
