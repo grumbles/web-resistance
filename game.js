@@ -92,6 +92,10 @@ function initWAMP(room) {
 				update(event.data);
 				break;
 
+				case 'event':
+				appendChat('', event.msg, true);
+				break;
+
 				default:
 				console.log('Unknown message in channel...');
 				break;
@@ -142,8 +146,12 @@ function handleWS(data) {
 		notifyTeam(data.team, data.info);
 		break;
 
+	case 'pickteam':
+		selectTeam(data.size, data.players);
+		break;
+
 	case 'teamvote':
-		promptVote(data.team, data.captain);
+		voteTeam(data.team, data.captain);
 		break;
 		
 	case 'mission':
@@ -187,7 +195,7 @@ function update(data) {
 	for(i in data.players)
 		plist.append('<li>' + data.players[i] + '</li>');
 
-	for(i in data.state)
+	for(var i = 0; i < data.state.length; i++)
 		setMission(i, data.state[i]);
 
 	if(data.rejects != -1) {

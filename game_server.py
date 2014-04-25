@@ -222,18 +222,54 @@ class Game(object):
 
         for n in self.players:
             info = ([str(s) for s in self.spies] if n.team == 'spies' else len(self.spies))
-            n.sendData({'type':'setteam','team' : n.team, 'info' : info })
+            n.sendData({'type': 'setteam', 'team': n.team, 'info': info })
 
         self.gameState = 1
+        self.captain = 0
 
-        print("HEY YOU GOTTA WRITE THE GAME LOGIC!")
+        self.pushUpdate()
+        self.logGameEvent('The game is starting, good luck!')
+
+        self.promptTeamSelect()
+
+        print("Waiting for team selection...")
 
     def tryTeam(self, team, source):
         """
         A player has selected a mission team.
         Make sure the team is valid and the selector is the current captain.
         """
-        print("This hasn't been implemented yet!")
+        
+        if len(team) == self.missionList[self.gameState - 1] \
+           and source == self.players[self.captain]:
+            self.startTeamVote(team, str(source))
+
+    def promptTeamSelect(self):
+        """
+        Prompt the current team captain to select a team.
+        """
+        cap = self.players[self.captain]
+        self.logGameEvent(str(cap) + " is now picking a team for the mission.")
+        cap.sendData({'type': 'pickteam',
+                      'size': self.missionList[self.gameState - 1],
+                      'players': [str(p) for p in self.players]})
+        
+
+    def startTeamVote(self, team, captain):
+        """
+        Initiate a team vote among the players
+        """
+        com = {'type': 'teamvote', 'team': team, 'captain': captain}
+        self.logGameEvent(captain + " has picked " + ', '.join(team))
+        print("Starting team vote...")
+        for p in self.players:
+            p.sendData(com)
+
+    def logGameEvent(self, message):
+        """
+        Log a noteworthy game event in the pubsub channel
+        """
+        self.wampdispatch(self.channel, {'type': 'event', 'msg': '<i>' + message + '</i>'})
 
     def destroy(self):
         # Callback on game end
