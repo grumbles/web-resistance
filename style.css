@@ -56,13 +56,20 @@ button:hover {
 
 .highlight { background: #ccc }
 
+.teamSelect {
+	background-color: #eee;
+	opacity: .3;
+}
+
 .light, .mission{
 	border: 1px solid #ccc;
 }
 
 .mission {
 	width: 25px;
-	height: 25px;	
+	height: 25px;
+	text-align: center;
+	vertical-align: middle;
 }
 
 .resist {

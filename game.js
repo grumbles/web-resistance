@@ -55,8 +55,12 @@ $(document).ready(function() {
 	});
 
 	// DEBUG STUFF
+	// setMission(1, 'S');
+	// setMission(2, '2');
+	// setMission(3, 'R');
+	// setMission(4, '13');
 	// voteMission();
-	selectTeam(5, ['guy', 'dude', 'bro', 'fellow', 'thing', 'spy', 'other guy'])
+	// selectTeam(5, ['guy', 'dude', 'bro', 'fellow', 'thing', 'spy', 'other guy']);
 	// voteTeam(['guy', 'dude', 'bro', 'fellow', 'thing', 'spy'], 'el capitan');
 	// $('body').append('<p> username=' + username + '</p>');
 	// $('body').append('<p>  room id=' + room + ' </p>');
@@ -191,9 +195,9 @@ function setReady() {
 function voteTeam(team, captain) {
 	var newPrompt = '<div hidden>' + captain + " has proposed to send this team on the mission:<br>";
 	for(i in team)
-		newPrompt = newPrompt + (i!=0 ? ", ": "") + team[i];
+		newPrompt += (i!=0 ? ", ": "") + team[i];
 	
-	newPrompt = newPrompt + '</div><div class="votebuttons" hidden><button id="voteyes" onclick="sendVote(\'yes\')">Approve</button> <button id="voteno" onclick="sendVote(\'no\')">Reject</button></div>';
+	newPrompt += '</div><div class="votebuttons" hidden><button id="voteyes" onclick="sendVote(\'yes\')">Approve</button> <button id="voteno" onclick="sendVote(\'no\')">Reject</button></div>';
 
 	$('#prompt').empty();
 	$('#prompt').append(newPrompt);
@@ -229,12 +233,59 @@ function voteMission() {
  * Prompt the user to select a team to go on a mission.
  */
 function selectTeam(size, players) {
-	var remainingPlayers = size;
-	var newPrompt = '<div hidden>You must select <span id="teamcount">' + remainingPlayers + '</span> players to go on the mission.</div>';
+	var newPrompt = '<div hidden>You must select <span id="teamcount">' + size + '</span> players to go on the mission.</div><div id="teamlist" hidden>';
+	
+	for(i in players) {
+		newPrompt += '<button onClick="selectPlayer(\'' + players[i] + '\')">' + players[i] + '</button> ';
+	}
+	newPrompt += '</div>';
 
 	$('#prompt').empty();
 	$('#prompt').append(newPrompt);
 	$('#prompt div:first-child').fadeIn(400, function() {
-		//???
+		$(this).next().fadeIn(400);
 	});
+}
+
+function selectPlayer(playername) {
+	var teamcount = parseInt($('#teamcount').text());
+	var button = $('#teamlist button').filter(function() {
+		return $(this).text() == playername;
+	});
+	
+	if(button.hasClass('teamSelect')) {
+		button.removeClass('teamSelect');
+		teamcount++;
+	} else {
+		button.addClass('teamSelect');
+		teamcount--;
+	}
+
+	if(teamcount <= 0) {
+		var team = $.map($('.teamSelect'), function(e) {
+			return $(e).text();
+		});
+		console.log("Sending team: " + team);
+		
+		$('#prompt div:first-child').fadeOut();
+		$('#teamlist button:not(.teamSelect)').fadeOut();
+
+		sock.send(['team', team]);
+	} else {
+		$('#teamcount').text(teamcount);
+	}
+}
+
+function setMission(index, value) {
+	var mission = $('#state .mission:nth-child(' + index + ')');
+
+	switch(value) {
+	case 'S':
+		mission.addClass('spies');
+		break;
+	case 'R':
+		mission.addClass('resist');
+		break;
+	}
+	mission.text(value);
 }
