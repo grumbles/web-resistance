@@ -30,6 +30,7 @@ $(document).ready(function() {
 			// User's name isn't set. This could happen if the user joins the
 			// game from an external link instead of from the lobby
 			// TODO: Deal with this?
+			self.location="lobby.html";
 		}
 	} else {
 		// User's browser doesn't support Web Storage
@@ -55,8 +56,14 @@ $(document).ready(function() {
 	});
 
 	// DEBUG STUFF
+	// notifyTeam('spies', ['spy','spyer','the spyest']);
+	// notifyTeam('resistance', 4);
+	// setMission(1, 'S');
+	// setMission(2, '2');
+	// setMission(3, 'R');
+	// setMission(4, '13');
 	// voteMission();
-	//selectTeam(5, ['guy', 'dude', 'bro', 'fellow', 'thing', 'spy', 'other guy'])
+	// selectTeam(5, ['guy', 'dude', 'bro', 'fellow', 'thing', 'spy', 'other guy']);
 	// voteTeam(['guy', 'dude', 'bro', 'fellow', 'thing', 'spy'], 'el capitan');
 	// $('body').append('<p> username=' + username + '</p>');
 	// $('body').append('<p>  room id=' + room + ' </p>');
@@ -131,15 +138,20 @@ function handleWS(data) {
 		console.log("Server response: " + data.status);
 		break;
 
+	case 'setteam':
+		notifyTeam(data.team);
+		break;
+
 	case 'teamvote':
 		promptVote(data.team, data.captain);
 		break;
 		
 	case 'mission':
-		promptMission();
+		promptMission(data.special);
 		break;
 		
 	case 'victory':
+		notifyVictory(data.winner, data.spies);
 		break;
 		
 	default:
@@ -186,14 +198,40 @@ function setReady() {
 }
 
 /*
+ * Add a notification to telling the user what team they're on.
+ */
+function notifyTeam(team, info) {
+	var prompt = "ERROR! Couldn't get team assignment!";
+
+	switch(team) {
+	case 'spies':
+		prompt = "<div class=\"spies\" hidden>You are a <i>Spy</i>. Your goal is to <i>fail</i> three of the five missions. Your fellow spies are:<br>";
+		for(i in info)
+			prompt += (i!=0? ', ' : '') + info[i];
+		prompt += "<br>Do not allow the <span style='color:#00c;'>Resistance</span> to discover your identity.</div>";
+		break;
+
+	case 'resistance':
+		prompt = "<div class=\"resist\" hidden>You are on the <i>Resistance</i>. Your goal is to <i>succeed</i>  three of the five missions.<br> " + info + " of your fellow players are secretly <span style='color:#c00;'>Spies</span>, who wish to sabotage your missions.<br>Do not allow the <span style='color:#c00;'>Spies</span> to win.</div>";
+
+	default:
+		console.log("Malformed team assignment! " + team + " " + info);
+	}
+
+	$('#pregame').replaceWith(prompt);
+	$('#statusbar [hidden]').fadeIn(2000);
+	
+}
+
+/*
  * Prompt the user to vote to accept or reject a team.
  */
 function voteTeam(team, captain) {
 	var newPrompt = '<div hidden>' + captain + " has proposed to send this team on the mission:<br>";
 	for(i in team)
-		newPrompt = newPrompt + (i!=0 ? ", ": "") + team[i];
+		newPrompt += (i!=0 ? ", ": "") + team[i];
 	
-	newPrompt = newPrompt + '</div><div class="votebuttons" hidden><button id="voteyes" onclick="sendVote(\'yes\')">Approve</button> <button id="voteno" onclick="sendVote(\'no\')">Reject</button></div>';
+	newPrompt += '</div><div class="votebuttons" hidden><button id="voteyes" onclick="sendVote(\'yes\')">Approve</button> <button id="voteno" onclick="sendVote(\'no\')">Reject</button></div>';
 
 	$('#prompt').empty();
 	$('#prompt').append(newPrompt);
@@ -213,8 +251,10 @@ function sendVote(vote) {
 /*
  * Prompt the user to vote to succeed or fail a mission.
  */
-function voteMission() {
-	var newPrompt = '<div hidden>You have been selected as a member of the mission team.<br>Will you succeed or fail the mission?</div><div class="votebuttons" hidden>' + 
+function voteMission(special) {
+	var newPrompt = '<div hidden>You have been selected as a member of the mission team.<br>Will you succeed or fail the mission?<br>' +
+		(special? '<i>This mission requires at least two failure votes to fail.</i>' : '') +
+		'</div><div class="votebuttons" hidden>' + 
 		'<button id="voteyes" class="resist" onclick="sendVote(\'yes\')">Succeed</button> ' +
 		'<button id="voteno" class="spies" onclick="sendVote(\'no\')">Fail</button></div>';
 
@@ -229,12 +269,86 @@ function voteMission() {
  * Prompt the user to select a team to go on a mission.
  */
 function selectTeam(size, players) {
-	var remainingPlayers = size;
-	var newPrompt = '<div hidden>You must select <span id="teamcount">' + remainingPlayers + '</span> players to go on the mission.</div>';
+	var newPrompt = '<div hidden>You must select <span id="teamcount">' + size + '</span> players to go on the mission.</div><div id="teamlist" hidden>';
+	
+	for(i in players) {
+		newPrompt += '<button onClick="selectPlayer(\'' + players[i] + '\')">' + players[i] + '</button> ';
+	}
+	newPrompt += '</div>';
 
 	$('#prompt').empty();
 	$('#prompt').append(newPrompt);
 	$('#prompt div:first-child').fadeIn(400, function() {
-		//???
+		$(this).next().fadeIn(400);
 	});
+}
+
+function selectPlayer(playername) {
+	var teamcount = parseInt($('#teamcount').text());
+	var button = $('#teamlist button').filter(function() {
+		return $(this).text() == playername;
+	});
+	
+	if(button.hasClass('teamSelect')) {
+		button.removeClass('teamSelect');
+		teamcount++;
+	} else {
+		button.addClass('teamSelect');
+		teamcount--;
+	}
+
+	if(teamcount <= 0) {
+		var team = $.map($('.teamSelect'), function(e) {
+			return $(e).text();
+		});
+		console.log("Sending team: " + team);
+		
+		$('#prompt div:first-child').fadeOut();
+		$('#teamlist button:not(.teamSelect)').fadeOut();
+
+		sock.send(['team', team]);
+	} else {
+		$('#teamcount').text(teamcount);
+	}
+}
+
+function setMission(index, value) {
+	var mission = $('#state .mission:nth-child(' + index + ')');
+
+	switch(value) {
+	case 'S':
+		mission.addClass('spies');
+		break;
+	case 'R':
+		mission.addClass('resist');
+		break;
+	}
+	mission.text(value);
+}
+
+/*
+ * Notify the player when the game is won by either team
+ */
+function notifyVictory(winner, spies) {
+	var prompt = $('#prompt');
+	switch(winner) {
+	case 'spies':
+		prompt.empty();
+		prompt.addClass('spies');
+		prompt.append("The Resistance has failed. Spies are victorious!");
+		break;
+
+	case 'resistance':
+		prompt.empty();
+		prompt.addClass('resist');
+		prompt.append("The Spies have failed. The Resistance is victorious!");
+		break;
+	}
+
+	$('#players li:not(.highlight)').filter(function() {
+		return $.inArray($(this).text(), spies) != -1;
+	}).addClass("spies");
+
+	$('#players li:not(.spies,.highlight)').addClass("resist");
+	
 }
