@@ -137,15 +137,12 @@ class Game(object):
     MIN_PLAYERS = 5
     MAX_PLAYERS = 10
 
-    RESNUM = 0
-    SPYNUM = 0
-
     def __init__(self, owner, ownername, wampdispatch, gamechannel):
         self.players = []
         self.wampdispatch = wampdispatch
         self.channel = gamechannel + ownername
         self.gameState = Game.PREGAME
-        
+        self.missionList = []
         self.roomName = ownername
         self.addPlayer(owner, ownername)
 
@@ -190,41 +187,33 @@ class Game(object):
         """
         Begin game logic.
         """
-        PLAYERNUM = len(self.players)
-
-        SPIES = set()
-
-
-
-
 
         if len(self.players) == 5:
-                RESNUM = 3
-                SPYNUM = 2
+            spyNum = 2
+            missionList = [2,3,2,3,3]
         elif len(self.players) == 6:
-                RESNUM = 4
-                SPYNUM = 2
+            spyNum = 2
+            missionList = [2,3,4,3,3]
         elif len(self.players) == 7:
-                RESNUM = 4
-                SPYNUM = 3
+            spyNum = 3
+            missionList = [2,3,3,4,4]
         elif len(self.players) == 8:
-                RESNUM = 5
-                SPYNUM = 3
+            spyNum = 3
+            missionList = [3,4,4,5,5]
         elif len(self.players) == 9:
-                RESNUM = 6
-                SPYNUM = 3
+            spyNum = 3
+            missionList = [3,4,4,5,5]
         elif len(self.players) == 10:
-                RESNUM = 6
-                SPYNUM = 4
+            spyNum = 4
+            missionList = [3,4,4,5,5]
         else:
-                print("INCORRECT NUMBER OF PLAYERS!")
+            print("INCORRECT NUMBER OF PLAYERS!")
 
+        spies = set()
+        while len(spies) < spyNum:
+            spies.add(random.choice(self.players))
 
-
-        while len(SPIES) < SPYNUM:
-            SPIES.add(random.choice(self.players))
-
-        self.spies = [n for n in SPIES]
+        self.spies = [n for n in spies]
 
         for n in self.spies:
             n.setTeam('spies')
@@ -233,6 +222,7 @@ class Game(object):
             info = (self.spies if n.team == 'spies' else len(self.spies))
             n.sendData({'type':'setteam','team' : n.team, 'info' : info })
 
+        self.gameState = 1
 
         print("HEY YOU GOTTA WRITE THE GAME LOGIC!")
 
