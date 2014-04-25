@@ -221,7 +221,7 @@ class Game(object):
             n.setTeam('spies')
 
         for n in self.players:
-            info = (self.spies if n.team == 'spies' else len(self.spies))
+            info = ([str(s) for s in self.spies] if n.team == 'spies' else len(self.spies))
             n.sendData({'type':'setteam','team' : n.team, 'info' : info })
 
         self.gameState = 1

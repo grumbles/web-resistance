@@ -139,7 +139,7 @@ function handleWS(data) {
 		break;
 
 	case 'setteam':
-		notifyTeam(data.team);
+		notifyTeam(data.team, data.info);
 		break;
 
 	case 'teamvote':
@@ -222,7 +222,7 @@ function notifyTeam(team, info) {
 
 	switch(team) {
 	case 'spies':
-		prompt = "<div class=\"spies\" hidden>You are a <i>Spy</i>. Your goal is to <i>fail</i> three of the five missions. Your fellow spies are:<br>";
+		prompt = "<div class=\"spies\" hidden>You are a <i>Spy</i>. Your goal is to <i>fail</i> three of the five missions. The spies in this game are:<br>";
 		for(i in info)
 			prompt += (i!=0? ', ' : '') + info[i];
 		prompt += "<br>Do not allow the <span style='color:#00c;'>Resistance</span> to discover your identity.</div>";
@@ -230,7 +230,7 @@ function notifyTeam(team, info) {
 
 	case 'resistance':
 		prompt = "<div class=\"resist\" hidden>You are on the <i>Resistance</i>. Your goal is to <i>succeed</i>  three of the five missions.<br> " + info + " of your fellow players are secretly <span style='color:#c00;'>Spies</span>, who wish to sabotage your missions.<br>Do not allow the <span style='color:#c00;'>Spies</span> to win.</div>";
-
+		break;
 	default:
 		console.log("Malformed team assignment! " + team + " " + info);
 	}
@@ -330,7 +330,7 @@ function selectPlayer(playername) {
 }
 
 function setMission(index, value) {
-	var mission = $('#state .mission:nth-child(' + index + ')');
+	var mission = $('#state .mission:nth-child(' + (index+1) + ')');
 
 	switch(value) {
 	case 'S':
