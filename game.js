@@ -55,6 +55,8 @@ $(document).ready(function() {
 	});
 
 	// DEBUG STUFF
+	// notifyTeam('spies', ['spy','spyer','the spyest']);
+	// notifyTeam('resistance', 4);
 	// setMission(1, 'S');
 	// setMission(2, '2');
 	// setMission(3, 'R');
@@ -135,12 +137,16 @@ function handleWS(data) {
 		console.log("Server response: " + data.status);
 		break;
 
+	case 'setteam':
+		notifyTeam(data.team);
+		break;
+
 	case 'teamvote':
 		promptVote(data.team, data.captain);
 		break;
 		
 	case 'mission':
-		promptMission();
+		promptMission(data.special);
 		break;
 		
 	case 'victory':
@@ -190,6 +196,32 @@ function setReady() {
 }
 
 /*
+ * Add a notification to telling the user what team they're on.
+ */
+function notifyTeam(team, info) {
+	var prompt = "ERROR! Couldn't get team assignment!";
+
+	switch(team) {
+	case 'spies':
+		prompt = "<div class=\"spies\" hidden>You are a <i>Spy</i>. Your goal is to <i>fail</i> three of the five missions. Your fellow spies are:<br>";
+		for(i in info)
+			prompt += (i!=0? ', ' : '') + info[i];
+		prompt += "<br>Do not allow the <span style='color:#00c;'>Resistance</span> to discover your identity.</div>";
+		break;
+
+	case 'resistance':
+		prompt = "<div class=\"resist\" hidden>You are on the <i>Resistance</i>. Your goal is to <i>succeed</i>  three of the five missions.<br> " + info + " of your fellow players are secretly <span style='color:#c00;'>Spies</span>, who wish to sabotage your missions.<br>Do not allow the <span style='color:#c00;'>Spies</span> to win.</div>";
+
+	default:
+		console.log("Malformed team assignment! " + team + " " + info);
+	}
+
+	$('#pregame').replaceWith(prompt);
+	$('#statusbar [hidden]').fadeIn(2000);
+	
+}
+
+/*
  * Prompt the user to vote to accept or reject a team.
  */
 function voteTeam(team, captain) {
@@ -217,8 +249,10 @@ function sendVote(vote) {
 /*
  * Prompt the user to vote to succeed or fail a mission.
  */
-function voteMission() {
-	var newPrompt = '<div hidden>You have been selected as a member of the mission team.<br>Will you succeed or fail the mission?</div><div class="votebuttons" hidden>' + 
+function voteMission(special) {
+	var newPrompt = '<div hidden>You have been selected as a member of the mission team.<br>Will you succeed or fail the mission?<br>' +
+		(special? '<i>This mission requires at least two failure votes to fail.</i>')
+		'</div><div class="votebuttons" hidden>' + 
 		'<button id="voteyes" class="resist" onclick="sendVote(\'yes\')">Succeed</button> ' +
 		'<button id="voteno" class="spies" onclick="sendVote(\'no\')">Fail</button></div>';
 
