@@ -1,4 +1,4 @@
-
+import json
 from autobahn.twisted.websocket import WebSocketServerProtocol, \
                                        WebSocketServerFactory, \
                                        listenWS
@@ -83,7 +83,7 @@ class PlayerSocketProtocol(WebSocketServerProtocol):
             elif part[0] == 'getroom':
                 # User wants to join a room; try and report on status
                 response = self.factory.addToRoom(self, self.username, part[2])
-                self.sendMessage(response)
+                self.sendMessage(json.dumps({'type' : 'response', 'status' : response}))
             elif part[0] == 'ready':
                 # Player says they're ready to start
                 self.player.markReady()

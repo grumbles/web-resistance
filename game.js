@@ -84,19 +84,8 @@ function initWAMP(room) {
 				update(event.data);
 				break;
 
-				case 'teamvote':
-				promptVote(event.team, event.captain);
-				break;
-
-				case 'mission':
-				promptMission();
-				break;
-
-				case 'victory':
-				break;
-
 				default:
-				console.log('Unknown response from server...');
+				console.log('Unknown message in channel...');
 				break;
 			}
 		});
@@ -127,13 +116,34 @@ function initWS(room) {
 		console.log("connection closed (" + e.code + ")");
     }
 
-    sock.onmessage = function(e) {
-		handleWS(e.data);
+    sock.onmessage = function(e) {		
+		handleWS(JSON.parse(e.data));
     }
 }
 
 function handleWS(data) {
-	console.log('WS data: ' + data);
+	console.log('WS data: ');
+	console.log(data);
+
+	switch(data.type) {
+	case 'response':
+		console.log("Server response: " + data.status);
+		break;
+
+	case 'teamvote':
+		promptVote(data.team, data.captain);
+		break;
+		
+	case 'mission':
+		promptMission();
+		break;
+		
+	case 'victory':
+		break;
+		
+	default:
+		console.log("Unrecognized message from server!");
+	}
 }
 
 /*
@@ -209,5 +219,4 @@ function voteMission() {
 
 	$('#prompt').empty();
 	$('#prompt').append(newPrompt);
-
 }
