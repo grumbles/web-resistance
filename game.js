@@ -56,6 +56,7 @@ $(document).ready(function() {
 
 	// DEBUG STUFF
 	// voteMission();
+	selectTeam(5, ['guy', 'dude', 'bro', 'fellow', 'thing', 'spy', 'other guy'])
 	// voteTeam(['guy', 'dude', 'bro', 'fellow', 'thing', 'spy'], 'el capitan');
 	// $('body').append('<p> username=' + username + '</p>');
 	// $('body').append('<p>  room id=' + room + ' </p>');
@@ -171,13 +172,6 @@ function update(data) {
 
 	for(i in data.players)
 		plist.append('<li>' + data.players[i] + '</li>');
-
-	// // Pregame update
-	// if(data.round == 0) {
-	// 	for(player in data.players) {
-	// 		console.log(player);
-	// 	}
-	// }
 }
 
 /*
@@ -185,38 +179,62 @@ function update(data) {
  */
 function setReady() {
 	sock.send(['ready', '']);
-	$("#setready").replaceWith("<i>Waiting for other players...</i>");
-	
+	$("#prompt").append('<i hidden>Waiting for other players...</i>');
+	$("#setready").fadeOut(400, function() {
+		$("#prompt i").fadeIn(400);
+	});
 }
 
 /*
  * Prompt the user to vote to accept or reject a team.
  */
 function voteTeam(team, captain) {
-	var newPrompt = captain + " has proposed to send this team on the mission:<br>";
+	var newPrompt = '<div hidden>' + captain + " has proposed to send this team on the mission:<br>";
 	for(i in team)
 		newPrompt = newPrompt + (i!=0 ? ", ": "") + team[i];
 	
-	newPrompt = newPrompt + '<br><button id="voteyes" onclick="sendVote(\'yes\')">Approve</button> <button id="voteno" onclick="sendVote(\'no\')">Reject</button>';
+	newPrompt = newPrompt + '</div><div class="votebuttons" hidden><button id="voteyes" onclick="sendVote(\'yes\')">Approve</button> <button id="voteno" onclick="sendVote(\'no\')">Reject</button></div>';
 
 	$('#prompt').empty();
 	$('#prompt').append(newPrompt);
+	$('#prompt div:first-child').fadeIn(400, function () {
+		$('.votebuttons').fadeIn(400);
+	});
 }
 
 function sendVote(vote) {
-	// sock.send(['vote', vote]);
-	$('#voteyes,#voteno').remove();
-	$('#prompt').append("<i>Waiting on other players to vote</i>");
+	sock.send(['vote', vote]);
+	$("#prompt").append('<i hidden>Waiting on other players to vote.</i>');
+	$(".votebuttons").fadeOut(400, function() {
+		$("#prompt i").fadeIn(400);
+	});
 }
 
 /*
  * Prompt the user to vote to succeed or fail a mission.
  */
 function voteMission() {
-	var newPrompt = 'You have been selected as a member of the mission team.<br>Will you succeed or fail the mission?<br>' + 
+	var newPrompt = '<div hidden>You have been selected as a member of the mission team.<br>Will you succeed or fail the mission?</div><div class="votebuttons" hidden>' + 
 		'<button id="voteyes" class="resist" onclick="sendVote(\'yes\')">Succeed</button> ' +
-		'<button id="voteno" class="spies" onclick="sendVote(\'no\')">Fail</button>';
+		'<button id="voteno" class="spies" onclick="sendVote(\'no\')">Fail</button></div>';
 
 	$('#prompt').empty();
 	$('#prompt').append(newPrompt);
+	$('#prompt div:first-child').fadeIn(400, function () {
+		$('.votebuttons').fadeIn(400);
+	});
+}
+
+/*
+ * Prompt the user to select a team to go on a mission.
+ */
+function selectTeam(size, players) {
+	var remainingPlayers = size;
+	var newPrompt = '<div hidden>You must select <span id="teamcount">' + remainingPlayers + '</span> players to go on the mission.</div>';
+
+	$('#prompt').empty();
+	$('#prompt').append(newPrompt);
+	$('#prompt div:first-child').fadeIn(400, function() {
+		//???
+	});
 }
