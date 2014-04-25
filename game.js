@@ -150,6 +150,7 @@ function handleWS(data) {
 		break;
 		
 	case 'victory':
+		notifyVictory(data.winner, data.spies);
 		break;
 		
 	default:
@@ -251,7 +252,7 @@ function sendVote(vote) {
  */
 function voteMission(special) {
 	var newPrompt = '<div hidden>You have been selected as a member of the mission team.<br>Will you succeed or fail the mission?<br>' +
-		(special? '<i>This mission requires at least two failure votes to fail.</i>')
+		(special? '<i>This mission requires at least two failure votes to fail.</i>' : '') +
 		'</div><div class="votebuttons" hidden>' + 
 		'<button id="voteyes" class="resist" onclick="sendVote(\'yes\')">Succeed</button> ' +
 		'<button id="voteno" class="spies" onclick="sendVote(\'no\')">Fail</button></div>';
@@ -322,4 +323,31 @@ function setMission(index, value) {
 		break;
 	}
 	mission.text(value);
+}
+
+/*
+ * Notify the player when the game is won by either team
+ */
+function notifyVictory(winner, spies) {
+	var prompt = $('#prompt');
+	switch(winner) {
+	case 'spies':
+		prompt.empty();
+		prompt.addClass('spies');
+		prompt.append("The Resistance has failed. Spies are victorious!");
+		break;
+
+	case 'resistance':
+		prompt.empty();
+		prompt.addClass('resist');
+		prompt.append("The Spies have failed. The Resistance is victorious!");
+		break;
+	}
+
+	$('#players li:not(.highlight)').filter(function() {
+		return $.inArray($(this).text(), spies) != -1;
+	}).addClass("spies");
+
+	$('#players li:not(.spies,.highlight)').addClass("resist");
+	
 }
