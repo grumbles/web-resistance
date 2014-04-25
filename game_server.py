@@ -142,6 +142,7 @@ class Game(object):
         self.wampdispatch = wampdispatch
         self.channel = gamechannel + ownername
         self.gameState = Game.PREGAME
+        self.rejectCount = -1;
         self.missionList = []
         self.roomName = ownername
         self.addPlayer(owner, ownername)
@@ -170,7 +171,8 @@ class Game(object):
         """
         print("Pushing update to server!")
         update = {'room': self.roomName,
-                  'state': self.gameState,
+                  'state': self.missionList,
+                  'rejects': self.rejectCount,
                   'players': [ str(p) for p in self.players]}
         self.wampdispatch(self.channel, {'type': 'update', 'data': update})
 
@@ -190,22 +192,22 @@ class Game(object):
 
         if len(self.players) == 5:
             spyNum = 2
-            missionList = [2,3,2,3,3]
+            self.missionList = [2,3,2,3,3]
         elif len(self.players) == 6:
             spyNum = 2
-            missionList = [2,3,4,3,3]
+            self.missionList = [2,3,4,3,3]
         elif len(self.players) == 7:
             spyNum = 3
-            missionList = [2,3,3,4,4]
+            self.missionList = [2,3,3,4,4]
         elif len(self.players) == 8:
             spyNum = 3
-            missionList = [3,4,4,5,5]
+            self.missionList = [3,4,4,5,5]
         elif len(self.players) == 9:
             spyNum = 3
-            missionList = [3,4,4,5,5]
+            self.missionList = [3,4,4,5,5]
         elif len(self.players) == 10:
             spyNum = 4
-            missionList = [3,4,4,5,5]
+            self.missionList = [3,4,4,5,5]
         else:
             print("INCORRECT NUMBER OF PLAYERS!")
 

@@ -174,6 +174,8 @@ function appendChat(user, message, highlight) {
 
 /*
  * Handle status updates from the server
+ * Takes an update data object as an argument
+ * Which has the following properties: room, state, rejects, players
  */
 function update(data) {
 
@@ -185,6 +187,9 @@ function update(data) {
 	for(i in data.players)
 		plist.append('<li>' + data.players[i] + '</li>');
 
+	for(i in data.state)
+		setMission(i, data.state[i]);
+
 	if(data.rejects != -1) {
 		var r;
 		if(data.rejects == 1)
@@ -193,6 +198,8 @@ function update(data) {
 			r = 'rejections';
 		$('#statusbar').append("<div id='rejectbox' align='center'><div style='font-size:20px; height:25px; width:25px;' class='light'>" +
 							  data.rejects + "</div>Team " + r + "<br>remaining</div>");
+	} else {
+		$('#rejectbox').remove();
 	}
 }
 
