@@ -29,6 +29,12 @@ button:hover {
 	padding: 20px;
 }
 
+#rejectbox {
+	position: absolute;
+	right: 2px;
+	top: 2px;
+}
+
 #pregame {
 	font-style: oblique;
 	color: #777;

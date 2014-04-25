@@ -184,6 +184,16 @@ function update(data) {
 
 	for(i in data.players)
 		plist.append('<li>' + data.players[i] + '</li>');
+
+	if(data.rejects != -1) {
+		var r;
+		if(data.rejects == 1)
+			r = 'rejection';
+		else
+			r = 'rejections';
+		$('#statusbar').append("<div id='rejectbox' align='center'><div style='font-size:20px; height:25px; width:25px;' class='light'>" +
+							  data.rejects + "</div>Team " + r + "<br>remaining</div>");
+	}
 }
 
 /*
@@ -352,3 +362,4 @@ function notifyVictory(winner, spies) {
 	$('#players li:not(.spies,.highlight)').addClass("resist");
 	
 }
+
