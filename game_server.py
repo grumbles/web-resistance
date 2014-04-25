@@ -48,7 +48,7 @@ class Player(object):
             self.vote = None
 
     def sendData(self, data):
-        self.socket.sendMessage(data)
+        self.socket.sendMessage(json.dumps(data))
 
     def destroy(self):
         """ Callback on user disconnect """
@@ -165,6 +165,7 @@ class Game(object):
 
     def removePlayer(self, player):
         self.players.remove(player)
+        self.pushUpdate()
         if self.getPlayerCount() < 0:
             self.destroy()
 
