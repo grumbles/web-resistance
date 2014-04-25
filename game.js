@@ -55,6 +55,7 @@ $(document).ready(function() {
 	});
 
 	// DEBUG STUFF
+	// voteTeam(['guy', 'dude', 'bro', 'fellow', 'thing', 'spy'], 'el capitan');
 	// $('body').append('<p> username=' + username + '</p>');
 	// $('body').append('<p>  room id=' + room + ' </p>');
 });
@@ -80,6 +81,16 @@ function initWAMP(room) {
 				
 				case 'update':
 				update(event.data);
+				break;
+
+				case 'teamvote':
+				promptVote(event.team, event.captain);
+				break;
+
+				case 'mission':
+				break;
+
+				case 'victory':
 				break;
 
 				default:
@@ -164,4 +175,25 @@ function setReady() {
 	sock.send(['ready', '']);
 	$("#setready").replaceWith("<i>Waiting for other players...</i>");
 	
+}
+
+
+/*
+ * Prompt the user to vote to accept or reject a team.
+ */
+function voteTeam(team, captain) {
+	var newPrompt = captain + " has proposed to send this team on the mission:<br>";
+	for(i in team)
+		newPrompt = newPrompt + (i!=0 ? ", ": "") + team[i];
+	
+	newPrompt = newPrompt + '<br><button id="voteyes" onclick="sendVote(\'yes\')">Approve</button> <button id="voteno" onclick="sendVote(\'no\')">Reject</button>';
+
+	$('#prompt').empty();
+	$('#prompt').append(newPrompt);
+}
+
+function sendVote(vote) {
+	sock.send(['vote', vote]);
+	$('#voteyes,#voteno').remove();
+	$('#prompt').append("<i>Waiting on other players to vote</i>");
 }
