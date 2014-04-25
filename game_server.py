@@ -42,6 +42,9 @@ class Player(object):
         else:
             self.vote = None
 
+    def hasVoted(self):
+        return self.vote != None
+
     def sendData(self, data):
         self.socket.sendMessage(json.dumps(data))
 
@@ -88,9 +91,11 @@ class PlayerSocketProtocol(WebSocketServerProtocol):
             elif part[0] == 'vote':
                 # Player has voted on something
                 self.player.setVote(part[2])
+                self.player.game.checkTeamVotes()
             elif part[0] == 'mission':
                 # Player has voted on mission outcome
                 self.player.setVote(part[2])
+                self.player.game.checkMission()
             else:
                 print("Malformed command:", payload, "from", self.peer)
 
@@ -137,13 +142,17 @@ class Game(object):
     MIN_PLAYERS = 5
     MAX_PLAYERS = 10
 
+    REJECT_LIMIT = 5
+    POINTS_TO_WIN = 3
+
     def __init__(self, owner, ownername, wampdispatch, gamechannel):
         self.players = []
         self.wampdispatch = wampdispatch
         self.channel = gamechannel + ownername
         self.gameState = Game.PREGAME
-        self.rejectCount = -1;
+        self.rejectCount = 0;
         self.missionList = []
+        self.missionTeam = None
         self.roomName = ownername
         self.addPlayer(owner, ownername)
 
@@ -226,6 +235,7 @@ class Game(object):
 
         self.gameState = 1
         self.captain = 0
+        self.rejectCount = Game.REJECT_LIMIT
 
         self.pushUpdate()
         self.logGameEvent('The game is starting, good luck!')
@@ -244,6 +254,9 @@ class Game(object):
            and source == self.players[self.captain]:
             self.startTeamVote(team, str(source))
 
+    def shiftCaptain(self):
+        self.captain = (self.captain + 1) % len(self.players)
+
     def promptTeamSelect(self):
         """
         Prompt the current team captain to select a team.
@@ -260,8 +273,102 @@ class Game(object):
         Initiate a team vote among the players
         """
         com = {'type': 'teamvote', 'team': team, 'captain': captain}
+        self.shiftCaptain()
+        self.missionTeam = [p for p in self.players if str(p) in team]
         self.logGameEvent(captain + " has picked " + ', '.join(team))
         print("Starting team vote...")
+        for p in self.players:
+            p.sendData(com)
+
+    def startMission(self):
+        for p in self.missionTeam:
+            p.sendData({'type': 'mission', 'special': False})
+
+    def checkTeamVotes(self):
+        """
+        Check to see if all players have voted
+        If so, tally the votes and act on result
+        """
+        if all([p.hasVoted() for p in self.players]) and self.gameState > 0:
+            approvers = [str(p) for p in self.players if p.vote == True]
+            rejectors = [str(p) for p in self.players if p.vote == False]
+            for p in self.players:
+                p.setVote(None)
+
+            self.logGameEvent(', '.join(rejectors) + " voted to reject the team.")
+            self.logGameEvent(', '.join(approvers) + " voted to approve the team.")
+            if len(approvers) > len(rejectors):
+                #Team approved
+                self.rejectCount = Game.REJECT_LIMIT
+                self.logGameEvent("The team has been cleared for the mission!")
+                self.pushUpdate()
+                self.startMission()
+            else:
+                #Team rejected
+                self.missionTeam = None
+                self.rejectCount -= 1
+                if self.rejectCount <= 0:
+                    #Spies win
+                    #TODO: Victory states
+                    print("Spies win, do something about it.")
+                else:
+                    r = ' rejection' if self.rejectCount == 1 else ' rejections'
+                    self.logGameEvent("The team has been rejected. " + str(self.rejectCount) + r + " remain before Spies win.")
+                    self.pushUpdate()
+                    self.promptTeamSelect()
+
+    def checkMission(self):
+        """
+        Check to see if all mission team members have voted
+        If so, tally the votes and act on result
+        """
+        if all([p.hasVoted() for p in self.missionTeam]) and self.missionTeam != None:
+            successes = sum([p.vote for p in self.missionTeam])
+            failures = len(self.missionTeam) - successes
+            for p in self.players:
+                p.setVote(None)
+
+            s = ' success' if successes == 1 else ' successes'
+            f = ' failure.' if failures == 1 else ' failures.'
+            self.logGameEvent("Mission complete... With " + str(successes) + s + " and " + str(failures) + f)
+            
+            #TODO: Something must be done about special missions here...
+            if failures <= 0:
+                #Mission success
+                self.missionList[self.gameState - 1] = 'R'
+                self.logGameEvent("Mission successful! Resistance takes the point.")
+            else:
+                #Fission Mailed!
+                self.missionList[self.gameState - 1] = 'S'
+                self.logGameEvent("Mission failure! Spies take the point.")
+
+            self.checkVictory()
+
+    def checkVictory(self):
+        """
+        Check if any alignment has won the game, and act accordingly
+        Called after each mission tally, so performs some cleanup too
+        """
+
+        self.gameState += 1
+        self.pushUpdate()
+
+        if self.missionList.count('R') >= Game.POINTS_TO_WIN:
+            #Resistance victory!
+            self.logGameEvent("The Resistance is victorious! Death to the empire!")
+            self.notifyWinners('resistance')
+        elif self.missionList.count('S') >= Game.POINTS_TO_WIN:
+            #Spies victory!
+            self.logGameEvent("The Spies are victorious! Glory to the empire!")
+            self.notifyWinners('spies')
+        else:
+            #We're all losers!
+            self.logGameEvent("Prepare for mission " + str(self.gameState) + "...")
+            self.promptTeamSelect()
+
+
+    def notifyWinners(self, winner):
+        com = {'type': 'victory', 'winner': winner, 'spies': [str(p) for p in self.spies]}
         for p in self.players:
             p.sendData(com)
 

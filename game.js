@@ -198,7 +198,8 @@ function update(data) {
 	for(var i = 0; i < data.state.length; i++)
 		setMission(i, data.state[i]);
 
-	if(data.rejects != -1) {
+	$('#rejectbox').remove();
+	if(data.rejects != 0) {
 		var r;
 		if(data.rejects == 1)
 			r = 'rejection';
@@ -206,8 +207,6 @@ function update(data) {
 			r = 'rejections';
 		$('#statusbar').append("<div id='rejectbox' align='center'><div style='font-size:20px; height:25px; width:25px;' class='light'>" +
 							  data.rejects + "</div>Team " + r + "<br>remaining</div>");
-	} else {
-		$('#rejectbox').remove();
 	}
 }
 
@@ -256,7 +255,7 @@ function voteTeam(team, captain) {
 	for(i in team)
 		newPrompt += (i!=0 ? ", ": "") + team[i];
 	
-	newPrompt += '</div><div class="votebuttons" hidden><button id="voteyes" onclick="sendVote(\'yes\')">Approve</button> <button id="voteno" onclick="sendVote(\'no\')">Reject</button></div>';
+	newPrompt += '</div><div class="votebuttons" hidden><button id="voteyes" onclick="sendVote(\'yes\', \'vote\')">Approve</button> <button id="voteno" onclick="sendVote(\'no\', \'vote\')">Reject</button></div>';
 
 	$('#prompt').empty();
 	$('#prompt').append(newPrompt);
@@ -265,8 +264,8 @@ function voteTeam(team, captain) {
 	});
 }
 
-function sendVote(vote) {
-	sock.send(['vote', vote]);
+function sendVote(vote, type) {
+	sock.send([type, vote]);
 	$("#prompt").append('<i hidden>Waiting on other players to vote.</i>');
 	$(".votebuttons").fadeOut(400, function() {
 		$("#prompt i").fadeIn(400);
@@ -276,12 +275,12 @@ function sendVote(vote) {
 /*
  * Prompt the user to vote to succeed or fail a mission.
  */
-function voteMission(special) {
+function promptMission(special) {
 	var newPrompt = '<div hidden>You have been selected as a member of the mission team.<br>Will you succeed or fail the mission?<br>' +
 		(special? '<i>This mission requires at least two failure votes to fail.</i>' : '') +
 		'</div><div class="votebuttons" hidden>' + 
-		'<button id="voteyes" class="resist" onclick="sendVote(\'yes\')">Succeed</button> ' +
-		'<button id="voteno" class="spies" onclick="sendVote(\'no\')">Fail</button></div>';
+		'<button id="voteyes" class="resist" onclick="sendVote(\'yes\', \'mission\')">Succeed</button> ' +
+		'<button id="voteno" class="spies" onclick="sendVote(\'no\', \'mission\')">Fail</button></div>';
 
 	$('#prompt').empty();
 	$('#prompt').append(newPrompt);
@@ -377,4 +376,3 @@ function notifyVictory(winner, spies) {
 	$('#players li:not(.spies,.highlight)').addClass("resist");
 	
 }
-
