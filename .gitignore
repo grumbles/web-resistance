@@ -6,3 +6,6 @@
 
 # I'm using this directory for a python virtualenv to simulate the deployment environment
 virt_env/
+
+.idea/*
+.python-version

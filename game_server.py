@@ -3,15 +3,9 @@ from autobahn.twisted.websocket import WebSocketServerProtocol, \
                                        WebSocketServerFactory, \
                                        listenWS
 
-class Team:
-    """
-    Possible team alignments for players. These are effectively enums.
-    Actual enum support will be added in Python 3.4 and has been backported,
-    but we're doing this for compatability.
-    """
-    UNALIGNED = 0
-    RESISTANCE = 1
-    SPY = 2
+import random
+
+
 
 class Player(object):
     """
@@ -23,8 +17,9 @@ class Player(object):
         socket.setPlayer(self)
         self.name = username
         self.game = game
-        self.team = Team.UNALIGNED
+        self.team = 'resistance'
         self.vote = None
+        self.ready = False
 
     def setTeam(self, team):
         self.team = team
@@ -142,6 +137,9 @@ class Game(object):
     MIN_PLAYERS = 5
     MAX_PLAYERS = 10
 
+    RESNUM = 0
+    SPYNUM = 0
+
     def __init__(self, owner, ownername, wampdispatch, gamechannel):
         self.players = []
         self.wampdispatch = wampdispatch
@@ -192,6 +190,50 @@ class Game(object):
         """
         Begin game logic.
         """
+        PLAYERNUM = len(self.players)
+
+        SPIES = set()
+
+
+
+
+
+        if len(self.players) == 5:
+                RESNUM = 3
+                SPYNUM = 2
+        elif len(self.players) == 6:
+                RESNUM = 4
+                SPYNUM = 2
+        elif len(self.players) == 7:
+                RESNUM = 4
+                SPYNUM = 3
+        elif len(self.players) == 8:
+                RESNUM = 5
+                SPYNUM = 3
+        elif len(self.players) == 9:
+                RESNUM = 6
+                SPYNUM = 3
+        elif len(self.players) == 10:
+                RESNUM = 6
+                SPYNUM = 4
+        else:
+                print("INCORRECT NUMBER OF PLAYERS!")
+
+
+
+        while len(SPIES) < SPYNUM:
+            SPIES.add(random.choice(self.players))
+
+        self.spies = [n for n in SPIES]
+
+        for n in self.spies:
+            n.setTeam('spies')
+
+        for n in self.players:
+            info = (self.spies if n.team == 'spies' else len(self.spies))
+            n.sendData({'type':'setteam','team' : n.team, 'info' : info })
+
+
         print("HEY YOU GOTTA WRITE THE GAME LOGIC!")
 
     def tryTeam(self, team, source):
