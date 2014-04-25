@@ -65,13 +65,14 @@ button:hover {
 	height: 25px;	
 }
 
-.mission.resist {
+.resist {
+	color: #00c;
 	border-color: #00c;
 	background-color: #9cf;
-	content: "R";
 }
 
-.mission.spies {
+.spies {
+	color: #c00;
 	border-color: #c00;
 	background-color: #fcc;
 }

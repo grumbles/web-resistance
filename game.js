@@ -55,6 +55,7 @@ $(document).ready(function() {
 	});
 
 	// DEBUG STUFF
+	// voteMission();
 	// voteTeam(['guy', 'dude', 'bro', 'fellow', 'thing', 'spy'], 'el capitan');
 	// $('body').append('<p> username=' + username + '</p>');
 	// $('body').append('<p>  room id=' + room + ' </p>');
@@ -88,6 +89,7 @@ function initWAMP(room) {
 				break;
 
 				case 'mission':
+				promptMission();
 				break;
 
 				case 'victory':
@@ -177,7 +179,6 @@ function setReady() {
 	
 }
 
-
 /*
  * Prompt the user to vote to accept or reject a team.
  */
@@ -193,7 +194,20 @@ function voteTeam(team, captain) {
 }
 
 function sendVote(vote) {
-	sock.send(['vote', vote]);
+	// sock.send(['vote', vote]);
 	$('#voteyes,#voteno').remove();
 	$('#prompt').append("<i>Waiting on other players to vote</i>");
+}
+
+/*
+ * Prompt the user to vote to succeed or fail a mission.
+ */
+function voteMission() {
+	var newPrompt = 'You have been selected as a member of the mission team.<br>Will you succeed or fail the mission?<br>' + 
+		'<button id="voteyes" class="resist" onclick="sendVote(\'yes\')">Succeed</button> ' +
+		'<button id="voteno" class="spies" onclick="sendVote(\'no\')">Fail</button>';
+
+	$('#prompt').empty();
+	$('#prompt').append(newPrompt);
+
 }
