@@ -12,8 +12,8 @@ var pssession = null;
  * doing testing it's more convenient to run everything on your own machine.
  * Comment and uncomment the following lines as needed.
  */
-// var domain = "tetramor.ph";
-var domain = "localhost";
+var domain = "tetramor.ph";
+//var domain = "localhost";
 
 var wsuri = "ws://" + domain + ":9000";
 var wampuri = "ws://" + domain + ":9001";

@@ -19,8 +19,8 @@ For deployment we'll be using the server's addresses, but if we're just
 doing testing it's more convenient to run everything on your own machine.
 Comment and uncomment the following lines as needed.
 """
-# domain = "tetramor.ph"
-domain = "localhost"
+domain = "tetramor.ph"
+# domain = "localhost"
 
 print("Using domain: " + domain)
 lobbychannel = "http://%s/lobby" % domain

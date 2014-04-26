@@ -6,8 +6,8 @@
  */
 
 // As before, comment/uncomment the following lines as needed for testing
-// var domain = "tetramor.ph";
-var domain = "localhost";
+var domain = "tetramor.ph";
+//var domain = "localhost";
 
 var wsuri = "ws://" + domain + ":9002";
 var wampuri = "ws://" + domain + ":9001";
