@@ -7,20 +7,9 @@
 var sock = null;
 var pssession = null;
 
-/*
- * For deployment we'll be using the server's addresses, but if we're just
- * doing testing it's more convenient to run everything on your own machine.
- * Comment and uncomment the following lines as needed.
- */
-// var domain = "tetramor.ph";
-var domain = "localhost";
-
 var wsuri = "ws://" + domain + ":9000";
 var wampuri = "ws://" + domain + ":9001";
 var channel = "http://" + domain + "/lobby";
-
-var MAX_NAMELEN = 21;
-var MAX_MSGLEN = 140;
 
 var username = null;
 
@@ -157,19 +146,6 @@ function setName(name) {
 		// User's browser doesn't support Web Storage
 		// TODO: Figure out what to do now.
 	}
-}
-
-/*
- * Append a chat message to the log.
- */
-function appendChat(user, message, highlight) {
-	// Some messages should be highlighted
-	var style = 'message' + (highlight? ' highlight' : '');
-
-	// TODO: Is there a more elegant way to do this?
-	$('#messagelog').append(
-		'<tr class="' + style + '"><td>' + user.substring(0, MAX_NAMELEN) + '</td><td>' + message.substring(0, MAX_MSGLEN) + '</td></tr>'
-	);
 }
 
 /*

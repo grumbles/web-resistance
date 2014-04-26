@@ -376,7 +376,7 @@ class Game(object):
         """
         Log a noteworthy game event in the pubsub channel
         """
-        self.wampdispatch(self.channel, {'type': 'event', 'msg': '<i>' + message + '</i>'})
+        self.wampdispatch(self.channel, {'type': 'event', 'msg': message})
 
     def destroy(self):
         # Callback on game end
