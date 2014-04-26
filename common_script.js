@@ -10,8 +10,8 @@ var MAX_MSGLEN = 140;
  * doing testing it's more convenient to run everything on your own machine.
  * Comment and uncomment the following lines as needed.
  */
-// var domain = "tetramor.ph";
-var domain = "localhost";
+var domain = "tetramor.ph";
+// var domain = "localhost";
 
 /*
  * Append a chat message to the log.
