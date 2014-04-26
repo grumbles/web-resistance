@@ -201,22 +201,22 @@ class Game(object):
 
         if len(self.players) == 5:
             spyNum = 2
-            self.missionList = [2,3,2,3,3]
+            self.missionList = ['2','3','2','3','3']
         elif len(self.players) == 6:
             spyNum = 2
-            self.missionList = [2,3,4,3,3]
+            self.missionList = ['2','3','4','3','3']
         elif len(self.players) == 7:
             spyNum = 3
-            self.missionList = [2,3,3,4,4]
+            self.missionList = ['2','3','3','4*','4']
         elif len(self.players) == 8:
             spyNum = 3
-            self.missionList = [3,4,4,5,5]
+            self.missionList = ['3','4','4','5*','5']
         elif len(self.players) == 9:
             spyNum = 3
-            self.missionList = [3,4,4,5,5]
+            self.missionList = ['3','4','4','5*','5']
         elif len(self.players) == 10:
             spyNum = 4
-            self.missionList = [3,4,4,5,5]
+            self.missionList = ['3','4','4','5*','5']
         else:
             print("INCORRECT NUMBER OF PLAYERS!")
 
@@ -244,13 +244,19 @@ class Game(object):
 
         print("Waiting for team selection...")
 
+    def getMissionSize(self):
+        return int(self.missionList[self.gameState - 1][0])
+
+    def isMissionSpecial(self):
+        return ('*' in self.missionList[self.gameState - 1])
+
     def tryTeam(self, team, source):
         """
         A player has selected a mission team.
         Make sure the team is valid and the selector is the current captain.
         """
         
-        if len(team) == self.missionList[self.gameState - 1] \
+        if len(team) == self.getMissionSize() \
            and source == self.players[self.captain]:
             self.startTeamVote(team, str(source))
 
@@ -263,8 +269,10 @@ class Game(object):
         """
         cap = self.players[self.captain]
         self.logGameEvent(str(cap) + " is now picking a team for the mission.")
+        if self.isMissionSpecial():
+            self.logGameEvent("This is a special mission, and cannot fail unless at least two team members fail it!")
         cap.sendData({'type': 'pickteam',
-                      'size': self.missionList[self.gameState - 1],
+                      'size': self.getMissionSize(),
                       'players': [str(p) for p in self.players]})
         
 
@@ -282,7 +290,7 @@ class Game(object):
 
     def startMission(self):
         for p in self.missionTeam:
-            p.sendData({'type': 'mission', 'special': False})
+            p.sendData({'type': 'mission', 'special': self.isMissionSpecial()})
 
     def checkTeamVotes(self):
         """
@@ -311,6 +319,8 @@ class Game(object):
                     #Spies win
                     #TODO: Victory states
                     print("Spies win, do something about it.")
+                    self.logGameEvent("Unable to agree on a team, the Resistance succumbs to petty squabbles. Spies win!");
+                    self.notifyWinners('spies');
                 else:
                     r = ' rejection' if self.rejectCount == 1 else ' rejections'
                     self.logGameEvent("The team has been rejected. " + str(self.rejectCount) + r + " remain before Spies win.")
@@ -333,7 +343,8 @@ class Game(object):
             self.logGameEvent("Mission complete... With " + str(successes) + s + " and " + str(failures) + f)
             
             #TODO: Something must be done about special missions here...
-            if failures <= 0:
+            maxFailures = 1 if self.isMissionSpecial() else 0
+            if failures <= maxFailures:
                 #Mission success
                 self.missionList[self.gameState - 1] = 'R'
                 self.logGameEvent("Mission successful! Resistance takes the point.")
@@ -376,7 +387,7 @@ class Game(object):
         """
         Log a noteworthy game event in the pubsub channel
         """
-        self.wampdispatch(self.channel, {'type': 'event', 'msg': '<i>' + message + '</i>'})
+        self.wampdispatch(self.channel, {'type': 'event', 'msg': message})
 
     def destroy(self):
         # Callback on game end

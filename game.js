@@ -2,12 +2,7 @@
  * game.js - clientside scripting for game rooms
  * TODO:
  * - Add functionality
- * - A lot of this is copied from lobby.js, can this be refactored?
  */
-
-// As before, comment/uncomment the following lines as needed for testing
-var domain = "tetramor.ph";
-//var domain = "localhost";
 
 var wsuri = "ws://" + domain + ":9002";
 var wampuri = "ws://" + domain + ":9001";
@@ -94,6 +89,7 @@ function initWAMP(room) {
 
 				case 'event':
 				appendChat('', event.msg, true);
+				$('#messagelog .message:first .chatmsg').css('font-style', 'italic');
 				break;
 
 				default:
@@ -168,19 +164,6 @@ function handleWS(data) {
 }
 
 /*
- * Append a chat message to the log.
- */
-function appendChat(user, message, highlight) {
-	// Some messages should be highlighted
-	var style = 'message' + (highlight? ' highlight' : '');
-
-	// TODO: Is there a more elegant way to do this?
-	$('#messagelog').prepend(
-		'<tr class="' + style + '"><td>' + user + '</td><td>' + message + '</td></tr>'
-	);
-}
-
-/*
  * Handle status updates from the server
  * Takes an update data object as an argument
  * Which has the following properties: room, state, rejects, players
@@ -192,8 +175,10 @@ function update(data) {
 	plist.empty();
 	plist.append('<li class="highlight"><i>Players:</i></li>');
 
-	for(i in data.players)
-		plist.append('<li>' + data.players[i] + '</li>');
+	for(i in data.players) {
+		plist.append('<li class="playername" />');
+		$('#players .playername:last').prop('textContent', data.players[i].substring(0, MAX_NAMELEN));
+	}
 
 	for(var i = 0; i < data.state.length; i++)
 		setMission(i, data.state[i]);
@@ -215,7 +200,7 @@ function update(data) {
  */
 function setReady() {
 	sock.send(['ready', '']);
-	$("#prompt").append('<i hidden>Waiting for other players...</i>');
+	$("#prompt").append('<i hidden>Waiting on other players...</i>');
 	$("#setready").fadeOut(400, function() {
 		$("#prompt i").fadeIn(400);
 	});
@@ -253,7 +238,7 @@ function notifyTeam(team, info) {
 function voteTeam(team, captain) {
 	var newPrompt = '<div hidden>' + captain + " has proposed to send this team on the mission:<br>";
 	for(i in team)
-		newPrompt += (i!=0 ? ", ": "") + team[i];
+		newPrompt += (i!=0 ? ", ": "") + team[i].substring(0, MAX_NAMELEN);
 	
 	newPrompt += '</div><div class="votebuttons" hidden><button id="voteyes" onclick="sendVote(\'yes\', \'vote\')">Approve</button> <button id="voteno" onclick="sendVote(\'no\', \'vote\')">Reject</button></div>';
 
@@ -266,8 +251,9 @@ function voteTeam(team, captain) {
 
 function sendVote(vote, type) {
 	sock.send([type, vote]);
-	$("#prompt").append('<i hidden>Waiting on other players to vote.</i>');
-	$(".votebuttons").fadeOut(400, function() {
+	$('#prompt div').fadeOut(400, function() {
+		$('#prompt').empty();
+		$("#prompt").append('<i hidden>Waiting on other players...</i>');
 		$("#prompt i").fadeIn(400);
 	});
 }
@@ -284,7 +270,7 @@ function promptMission(special) {
 
 	$('#prompt').empty();
 	$('#prompt').append(newPrompt);
-	$('#prompt div:first-child').fadeIn(400, function () {
+	$('#prompt div:first').fadeIn(400, function () {
 		$('.votebuttons').fadeIn(400);
 	});
 }

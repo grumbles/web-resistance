@@ -7,14 +7,6 @@
 var sock = null;
 var pssession = null;
 
-/*
- * For deployment we'll be using the server's addresses, but if we're just
- * doing testing it's more convenient to run everything on your own machine.
- * Comment and uncomment the following lines as needed.
- */
-var domain = "tetramor.ph";
-//var domain = "localhost";
-
 var wsuri = "ws://" + domain + ":9000";
 var wampuri = "ws://" + domain + ":9001";
 var channel = "http://" + domain + "/lobby";
@@ -31,16 +23,17 @@ $(document).ready(function() {
 			// Do stuff when user presses Enter
 			if(username == null) {
 				// If user's name isn't set, the chat box works as a name input
-				if(/^[a-z0-9]+$/i.test($(this).val())) {
-					setName($(this).val());
-				} else {
-					// Disregard non-alphanumeric input
-					$(this).val("Sorry, only alphanumeric characters are allowed");
-				}
+				setName($(this).val());
+				// if(/^[a-z0-9]+$/i.test($(this).val())) {
+				// 	setName($(this).val());
+				// } else {
+				// 	// Disregard non-alphanumeric input
+				// 	$(this).val("Sorry, only alphanumeric characters are allowed");
+				// }
 			} else {
 				// If user has a name, just publish messages to the chat
 				var msg = $(this).val();
-				pssession.publish(channel, {'type' : 'chat', 'user' : username, 'msg' : msg});
+				pssession.publish(channel, {'type' : 'chat', 'user' : username, 'msg' : msg.substring(0, MAX_MSGLEN)});
 				appendChat(username, msg, true)
 			}
 
@@ -153,19 +146,6 @@ function setName(name) {
 		// User's browser doesn't support Web Storage
 		// TODO: Figure out what to do now.
 	}
-}
-
-/*
- * Append a chat message to the log.
- */
-function appendChat(user, message, highlight) {
-	// Some messages should be highlighted
-	var style = 'message' + (highlight? ' highlight' : '');
-
-	// TODO: Is there a more elegant way to do this?
-	$('#messagelog').append(
-		'<tr class="' + style + '"><td>' + user + '</td><td>' + message + '</td></tr>'
-	);
 }
 
 /*
