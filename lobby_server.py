@@ -14,6 +14,8 @@ from autobahn.twisted.websocket import WebSocketServerProtocol, \
                                        WebSocketServerFactory, \
                                        listenWS
 
+import re
+
 """
 For deployment we'll be using the server's addresses, but if we're just
 doing testing it's more convenient to run everything on your own machine.
@@ -28,6 +30,8 @@ gamechannel = "http://%s/gamechat/" % domain
 playeruri = "ws://%s:9002" % domain
 wampuri = "ws://%s:9001" % domain
 wsuri = "ws://%s:9000" % domain
+
+MAX_NAMELEN = 21
 
 class PubSubProtocol(WampServerProtocol):
     """
@@ -93,10 +97,13 @@ class LobbyDataFactory(WebSocketServerFactory):
         """
         if not user in self.usernames:
             if not username in self.usernames.values():
-                print("Registering user", user.peer, "as", username)
-                self.usernames[user] = username
-                self.wampdispatch(lobbychannel, {'type':'chat', 'user':'Server', 'msg':(username + ' has joined.')})
-                return 'good'
+                if re.match('^[a-zA-Z0-9_]+$', username) and len(username) <= MAX_NAMELEN:
+                    print("Registering user", user.peer, "as", username)
+                    self.usernames[user] = username
+                    self.wampdispatch(lobbychannel, {'type':'chat', 'user':'Server', 'msg':(username + ' has joined.')})
+                    return 'good'
+                else:
+                    return 'bad'
             else:
                 return 'taken'
         else:

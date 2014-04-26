@@ -19,6 +19,9 @@ var wsuri = "ws://" + domain + ":9000";
 var wampuri = "ws://" + domain + ":9001";
 var channel = "http://" + domain + "/lobby";
 
+var MAX_NAMELEN = 21;
+var MAX_MSGLEN = 140;
+
 var username = null;
 
 $(document).ready(function() {
@@ -31,16 +34,17 @@ $(document).ready(function() {
 			// Do stuff when user presses Enter
 			if(username == null) {
 				// If user's name isn't set, the chat box works as a name input
-				if(/^[a-z0-9]+$/i.test($(this).val())) {
-					setName($(this).val());
-				} else {
-					// Disregard non-alphanumeric input
-					$(this).val("Sorry, only alphanumeric characters are allowed");
-				}
+				setName($(this).val());
+				// if(/^[a-z0-9]+$/i.test($(this).val())) {
+				// 	setName($(this).val());
+				// } else {
+				// 	// Disregard non-alphanumeric input
+				// 	$(this).val("Sorry, only alphanumeric characters are allowed");
+				// }
 			} else {
 				// If user has a name, just publish messages to the chat
 				var msg = $(this).val();
-				pssession.publish(channel, {'type' : 'chat', 'user' : username, 'msg' : msg});
+				pssession.publish(channel, {'type' : 'chat', 'user' : username, 'msg' : msg.substring(0, MAX_MSGLEN)});
 				appendChat(username, msg, true)
 			}
 
@@ -164,7 +168,7 @@ function appendChat(user, message, highlight) {
 
 	// TODO: Is there a more elegant way to do this?
 	$('#messagelog').append(
-		'<tr class="' + style + '"><td>' + user + '</td><td>' + message + '</td></tr>'
+		'<tr class="' + style + '"><td>' + user.substring(0, MAX_NAMELEN) + '</td><td>' + message.substring(0, MAX_MSGLEN) + '</td></tr>'
 	);
 }
 

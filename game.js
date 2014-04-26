@@ -176,7 +176,7 @@ function appendChat(user, message, highlight) {
 
 	// TODO: Is there a more elegant way to do this?
 	$('#messagelog').prepend(
-		'<tr class="' + style + '"><td>' + user + '</td><td>' + message + '</td></tr>'
+		'<tr class="' + style + '"><td>' + user.substring(0, MAX_NAMELEN) + '</td><td>' + message.substring(0, MAX_MSGLEN) + '</td></tr>'
 	);
 }
 
