@@ -201,22 +201,22 @@ class Game(object):
 
         if len(self.players) == 5:
             spyNum = 2
-            self.missionList = [2,3,2,3,3]
+            self.missionList = ['2','3','2','3','3']
         elif len(self.players) == 6:
             spyNum = 2
-            self.missionList = [2,3,4,3,3]
+            self.missionList = ['2','3','4','3','3']
         elif len(self.players) == 7:
             spyNum = 3
-            self.missionList = [2,3,3,'4*',4]
+            self.missionList = ['2','3','3','4*','4']
         elif len(self.players) == 8:
             spyNum = 3
-            self.missionList = [3,4,4,'5*',5]
+            self.missionList = ['3','4','4','5*','5']
         elif len(self.players) == 9:
             spyNum = 3
-            self.missionList = [3,4,4,'5*',5]
+            self.missionList = ['3','4','4','5*','5']
         elif len(self.players) == 10:
             spyNum = 4
-            self.missionList = [3,4,4,'5*',5]
+            self.missionList = ['3','4','4','5*','5']
         else:
             print("INCORRECT NUMBER OF PLAYERS!")
 
