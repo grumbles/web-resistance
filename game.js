@@ -1,7 +1,5 @@
 /*
  * game.js - clientside scripting for game rooms
- * TODO:
- * - Add functionality
  */
 
 var wsuri = "ws://" + domain + ":9002";
@@ -191,7 +189,7 @@ function update(data) {
 		else
 			r = 'rejections';
 		$('#statusbar').append("<div id='rejectbox' align='center'><div style='font-size:20px; height:25px; width:25px;' class='light'>" +
-							  data.rejects + "</div>Team " + r + "<br>remaining</div>");
+							   data.rejects + "</div>Team " + r + "<br>remaining</div>");
 	}
 }
 
@@ -250,12 +248,10 @@ function voteTeam(team, captain) {
 }
 
 function sendVote(vote, type) {
+	$('#prompt div').fadeOut(400);
+	$("#prompt").append('<i hidden>Waiting on other players...</i>');
+	$("#prompt i").fadeIn(400);
 	sock.send([type, vote]);
-	$('#prompt div').fadeOut(400, function() {
-		$('#prompt').empty();
-		$("#prompt").append('<i hidden>Waiting on other players...</i>');
-		$("#prompt i").fadeIn(400);
-	});
 }
 
 /*
