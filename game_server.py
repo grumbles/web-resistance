@@ -5,8 +5,6 @@ from autobahn.twisted.websocket import WebSocketServerProtocol, \
 
 import random
 
-
-
 class Player(object):
     """
     Player object as it's handled in games.
@@ -303,8 +301,8 @@ class Game(object):
             for p in self.players:
                 p.setVote(None)
 
-            self.logGameEvent(', '.join(rejectors) + " voted to reject the team.")
-            self.logGameEvent(', '.join(approvers) + " voted to approve the team.")
+            self.logGameEvent((', '.join(rejectors) if rejectors else "No players") + " voted to reject the team.")
+            self.logGameEvent((', '.join(approvers) if approvers else "No players") + " voted to approve the team.")
             if len(approvers) > len(rejectors):
                 #Team approved
                 self.rejectCount = Game.REJECT_LIMIT
