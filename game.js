@@ -57,7 +57,7 @@ $(document).ready(function() {
 	// setMission(4, '13');
 	// voteMission();
 	// selectTeam(5, ['guy', 'dude', 'bro', 'fellow', 'thing', 'spy', 'other guy']);
-	voteTeam(['guy', 'dude', 'bro', 'fellow', 'thing', 'spy'], 'el capitan');
+	// voteTeam(['guy', 'dude', 'bro', 'fellow', 'thing', 'spy'], 'el capitan');
 	// $('body').append('<p> username=' + username + '</p>');
 	// $('body').append('<p>  room id=' + room + ' </p>');
 });
