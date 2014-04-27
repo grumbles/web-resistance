@@ -57,7 +57,7 @@ $(document).ready(function() {
 	// setMission(4, '13');
 	// voteMission();
 	// selectTeam(5, ['guy', 'dude', 'bro', 'fellow', 'thing', 'spy', 'other guy']);
-	// voteTeam(['guy', 'dude', 'bro', 'fellow', 'thing', 'spy'], 'el capitan');
+	voteTeam(['guy', 'dude', 'bro', 'fellow', 'thing', 'spy'], 'el capitan');
 	// $('body').append('<p> username=' + username + '</p>');
 	// $('body').append('<p>  room id=' + room + ' </p>');
 });
@@ -197,10 +197,10 @@ function update(data) {
  * Sends a message to the server that this player is ready to begin.
  */
 function setReady() {
-	sock.send(['ready', '']);
 	$("#prompt").append('<i hidden>Waiting on other players...</i>');
 	$("#setready").fadeOut(400, function() {
 		$("#prompt i").fadeIn(400);
+		sock.send(['ready', '']);
 	});
 }
 
@@ -248,10 +248,11 @@ function voteTeam(team, captain) {
 }
 
 function sendVote(vote, type) {
-	$('#prompt div').fadeOut(400);
-	$("#prompt").append('<i hidden>Waiting on other players...</i>');
-	$("#prompt i").fadeIn(400);
-	sock.send([type, vote]);
+	$('#prompt div').fadeOut(400, function() {
+		$("#prompt").append('<i hidden>Waiting on other players...</i>');
+		$("#prompt i").fadeIn(400);
+		sock.send([type, vote]);
+	});
 }
 
 /*
@@ -309,10 +310,10 @@ function selectPlayer(playername) {
 		});
 		console.log("Sending team: " + team);
 		
-		$('#prompt div:first-child').fadeOut();
 		$('#teamlist button:not(.teamSelect)').fadeOut();
-
-		sock.send(['team', team]);
+		$('#prompt div:first-child').fadeOut(400, function() {
+			sock.send(['team', team]);
+		});
 	} else {
 		$('#teamcount').text(teamcount);
 	}
