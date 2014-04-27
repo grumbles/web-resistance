@@ -284,10 +284,12 @@ class Game(object):
         self.logGameEvent(captain + " has picked " + ', '.join(team))
         print("Starting team vote...")
         for p in self.players:
+            p.setVote(None)
             p.sendData(com)
 
     def startMission(self):
         for p in self.missionTeam:
+            p.setVote(None)
             p.sendData({'type': 'mission', 'special': self.isMissionSpecial()})
 
     def checkTeamVotes(self):
