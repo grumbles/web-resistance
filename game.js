@@ -248,7 +248,8 @@ function voteTeam(team, captain) {
 }
 
 function sendVote(vote, type) {
-	$('#prompt div').fadeOut(400, function() {
+	$('#prompt div:first').fadeOut(400);
+	$('#prompt .votebuttons').fadeOut(400, function() {
 		$("#prompt").append('<i hidden>Waiting on other players...</i>');
 		$("#prompt i").fadeIn(400);
 		sock.send([type, vote]);
@@ -285,7 +286,7 @@ function selectTeam(size, players) {
 
 	$('#prompt').empty();
 	$('#prompt').append(newPrompt);
-	$('#prompt div:first-child').fadeIn(400, function() {
+	$('#prompt div:first').fadeIn(400, function() {
 		$(this).next().fadeIn(400);
 	});
 }
@@ -311,7 +312,7 @@ function selectPlayer(playername) {
 		console.log("Sending team: " + team);
 		
 		$('#teamlist button:not(.teamSelect)').fadeOut();
-		$('#prompt div:first-child').fadeOut(400, function() {
+		$('#prompt div:first').fadeOut(400, function() {
 			sock.send(['team', team]);
 		});
 	} else {

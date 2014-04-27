@@ -284,10 +284,12 @@ class Game(object):
         self.logGameEvent(captain + " has picked " + ', '.join(team))
         print("Starting team vote...")
         for p in self.players:
+            p.setVote(None)
             p.sendData(com)
 
     def startMission(self):
         for p in self.missionTeam:
+            p.setVote(None)
             p.sendData({'type': 'mission', 'special': self.isMissionSpecial()})
 
     def checkTeamVotes(self):
@@ -295,6 +297,7 @@ class Game(object):
         Check to see if all players have voted
         If so, tally the votes and act on result
         """
+        print("TEAM vote status: " + str([p.vote for p in self.players]))
         if all([p.hasVoted() for p in self.players]) and self.gameState > 0:
             approvers = [str(p) for p in self.players if p.vote == True]
             rejectors = [str(p) for p in self.players if p.vote == False]
@@ -330,6 +333,7 @@ class Game(object):
         Check to see if all mission team members have voted
         If so, tally the votes and act on result
         """
+        print("MISSION status:" + str([p.vote for p in self.players]))
         if all([p.hasVoted() for p in self.missionTeam]) and self.missionTeam != None:
             successes = sum([p.vote for p in self.missionTeam])
             failures = len(self.missionTeam) - successes
