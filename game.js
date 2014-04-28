@@ -212,14 +212,14 @@ function notifyTeam(team, info) {
 
 	switch(team) {
 	case 'spies':
-		prompt = "<div class=\"spies\" hidden>You are a <i>Spy</i>. Your goal is to <i>fail</i> three of the five missions. The spies in this game are:<br>";
+		prompt = "<button class=\"hideshow\">Show/Hide Alignment</button><div class=\"spies\" hidden>You are a <i>Spy</i>. Your goal is to <i>fail</i> three of the five missions. The spies in this game are:<br>";
 		for(i in info)
 			prompt += (i!=0? ', ' : '') + info[i];
 		prompt += "<br>Do not allow the <span style='color:#00c;'>Resistance</span> to discover your identity.</div>";
 		break;
 
 	case 'resistance':
-		prompt = "<div class=\"resist\" hidden>You are on the <i>Resistance</i>. Your goal is to <i>succeed</i>  three of the five missions.<br> " + info + " of your fellow players are secretly <span style='color:#c00;'>Spies</span>, who wish to sabotage your missions.<br>Do not allow the <span style='color:#c00;'>Spies</span> to win.</div>";
+		prompt = "<button class=\"hideshow\">Show/Hide Alignment</button><div class=\"resist\" hidden>You are on the <i>Resistance</i>. Your goal is to <i>succeed</i>  three of the five missions.<br> " + info + " of your fellow players are secretly <span style='color:#c00;'>Spies</span>, who wish to sabotage your missions.<br>Do not allow the <span style='color:#c00;'>Spies</span> to win.</div>";
 		break;
 	default:
 		console.log("Malformed team assignment! " + team + " " + info);
@@ -227,6 +227,9 @@ function notifyTeam(team, info) {
 
 	$('#pregame').replaceWith(prompt);
 	$('#statusbar [hidden]').fadeIn(2000);
+	$('button.hideshow').click(function() {
+		$('div.spies, div.resist').toggle(1000);
+	});
 	
 }
 
