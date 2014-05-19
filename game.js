@@ -2,13 +2,14 @@
  * game.js - clientside scripting for game rooms
  */
 
-var wsuri = "ws://" + domain + ":9002";
-var wampuri = "ws://" + domain + ":9001";
+var wsuri = "ws://" + COMMON.get('DOMAIN') + ":9002";
+var wampuri = "ws://" + COMMON.get('DOMAIN') + ":9001";
 var pssession;
 var sock;
 var channel;
 
 var username;
+var msg_timer = 0;
 
 $(document).ready(function() {
 	// Get room name
@@ -38,11 +39,21 @@ $(document).ready(function() {
 	$('#chatinput').on('keyup', function(e) {
 		if(e.keyCode == 13) {
 			// Do stuff when user presses Enter
-			var msg = $(this).val();
-			pssession.publish(channel, {'type' : 'chat', 'user' : username, 'msg' : msg});
-			appendChat(username, msg, true)
-			// Clear text box while we're at it
-			$(this).val('');
+			if(Date.now() - msg_timer > COMMON.get('MSG_DELAY')) {
+				// Prevent the user from spamming messages too fast
+				var msg = $(this).val();
+				pssession.publish(channel, {'type' : 'chat', 'user' : username, 'msg' : msg});
+				appendChat(username, msg, true);
+
+				// Clear text box while we're at it
+				$(this).val('');
+
+				// Reset message timer
+				msg_timer = Date.now();
+			} else {
+				appendChat('', 'You are sending messages too fast. Chill out, dude!', true);
+				$('#messagelog .message:first .chatmsg').css('font-style', 'italic');
+			}
 		}		
 	}).on('focus', function() {
 		$(this).val('');
@@ -67,7 +78,7 @@ $(document).ready(function() {
  * This calls WebSocket initialization on completion to maintain synchronization
  */
 function initWAMP(room) {
-	channel = "http://" + domain + "/gamechat/" + room;
+	channel = "http://" + COMMON.get('DOMAIN') + "/gamechat/" + room;
 
 	//ab.debug(true);
 	ab.connect(wampuri, function(newSession) {
@@ -175,7 +186,7 @@ function update(data) {
 
 	for(i in data.players) {
 		plist.append('<li class="playername" />');
-		$('#players .playername:last').prop('textContent', data.players[i].substring(0, MAX_NAMELEN));
+		$('#players .playername:last').prop('textContent', data.players[i].substring(0, COMMON.get('MAX_NAMELEN')));
 	}
 
 	for(var i = 0; i < data.state.length; i++)
@@ -239,7 +250,7 @@ function notifyTeam(team, info) {
 function voteTeam(team, captain) {
 	var newPrompt = '<div hidden>' + captain + " has proposed to send this team on the mission:<br>";
 	for(i in team)
-		newPrompt += (i!=0 ? ", ": "") + team[i].substring(0, MAX_NAMELEN);
+		newPrompt += (i!=0 ? ", ": "") + team[i].substring(0, COMMON.get('MAX_NAMELEN'));
 	
 	newPrompt += '</div><div class="votebuttons" hidden><button id="voteyes" onclick="sendVote(\'yes\', \'vote\')">Approve</button> <button id="voteno" onclick="sendVote(\'no\', \'vote\')">Reject</button></div>';
 
