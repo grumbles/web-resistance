@@ -7,11 +7,12 @@
 var sock = null;
 var pssession = null;
 
-var wsuri = "ws://" + domain + ":9000";
-var wampuri = "ws://" + domain + ":9001";
-var channel = "http://" + domain + "/lobby";
+var wsuri = "ws://" + COMMON.get('DOMAIN') + ":9000";
+var wampuri = "ws://" + COMMON.get('DOMAIN') + ":9001";
+var channel = "http://" + COMMON.get('DOMAIN') + "/lobby";
 
 var username = null;
+var msg_timer = 0;
 
 $(document).ready(function() {
 	// initialize WAMP and WS
@@ -24,21 +25,28 @@ $(document).ready(function() {
 			if(username == null) {
 				// If user's name isn't set, the chat box works as a name input
 				setName($(this).val());
-				// if(/^[a-z0-9]+$/i.test($(this).val())) {
-				// 	setName($(this).val());
-				// } else {
-				// 	// Disregard non-alphanumeric input
-				// 	$(this).val("Sorry, only alphanumeric characters are allowed");
-				// }
+
+				// Clear text box while we're at it
+				$(this).val('');
 			} else {
 				// If user has a name, just publish messages to the chat
-				var msg = $(this).val();
-				pssession.publish(channel, {'type' : 'chat', 'user' : username, 'msg' : msg.substring(0, MAX_MSGLEN)});
-				appendChat(username, msg, true)
+				if(Date.now() - msg_timer > COMMON.get('MSG_DELAY')) {
+					// Prevent user from spamming messages too fast
+					var msg = $(this).val();
+					pssession.publish(channel, {'type' : 'chat', 'user' : username, 'msg' : msg.substring(0, COMMON.get('MAX_MSGLEN'))});
+					appendChat(username, msg, true);
+
+					// Clear text box while we're at it
+					$(this).val('');
+
+					// Reset message timer
+					msg_timer = Date.now();
+				} else {
+					appendChat('', 'You are sending messages too fast. Chill out, dude!', true);
+					$('#messagelog .message:first .chatmsg').css('font-style', 'italic');
+				}
 			}
 
-			// Clear text box while we're at it
-			$(this).val('');
 		}		
 	}).on('focus', function() {
 		$(this).val('');
