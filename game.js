@@ -9,12 +9,15 @@ var sock;
 var channel;
 
 var username;
+var state;
 var msg_timer = 0;
 
 $(document).ready(function() {
 	// Get room name
 	var re = /\?([A-Za-z]*)/g
 	var room = re.exec(document.URL)[1];
+
+	state = 'pregame';
 
 	// Get username from local storage
 	if(Storage !== undefined) {
@@ -70,7 +73,7 @@ $(document).ready(function() {
 	// selectTeam(5, ['guy', 'dude', 'bro', 'fellow', 'thing', 'spy', 'other guy']);
 	// voteTeam(['guy', 'dude', 'bro', 'fellow', 'thing', 'spy'], 'el capitan');
 	// $('body').append('<p> username=' + username + '</p>');
-	// $('body').append('<p>  room id=' + room + ' </p>');
+	// $('body').append('<p>  room id=' + room + ' </p>');	
 });
 
 /*
@@ -180,13 +183,15 @@ function handleWS(data) {
 function update(data) {
 
 	console.log(data);
-	var plist = $('#players ul:first-child');
-	plist.empty();
-	plist.append('<li class="highlight"><i>Players:</i></li>');
-
-	for(i in data.players) {
-		plist.append('<li class="playername" />');
-		$('#players .playername:last').prop('textContent', data.players[i].substring(0, COMMON.get('MAX_NAMELEN')));
+	if(state != 'postgame') {
+		var plist = $('#players ul:first-child');
+		plist.empty();
+		plist.append('<li class="highlight"><i>Players:</i></li>');
+		
+		for(i in data.players) {
+			plist.append('<li class="playername" />');
+			$('#players .playername:last').prop('textContent', data.players[i].substring(0, COMMON.get('MAX_NAMELEN')));
+		}
 	}
 
 	for(var i = 0; i < data.state.length; i++)
@@ -219,6 +224,7 @@ function setReady() {
  * Add a notification to telling the user what team they're on.
  */
 function notifyTeam(team, info) {
+	state = 'ingame';
 	var prompt = "ERROR! Couldn't get team assignment!";
 
 	switch(team) {
@@ -352,6 +358,7 @@ function setMission(index, value) {
  * Notify the player when the game is won by either team
  */
 function notifyVictory(winner, spies) {
+	state = 'postgame';
 	var prompt = $('#prompt');
 	switch(winner) {
 	case 'spies':
