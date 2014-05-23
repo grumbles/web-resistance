@@ -27,7 +27,9 @@ $(document).ready(function() {
 			// User's name isn't set. This could happen if the user joins the
 			// game from an external link instead of from the lobby
 			// TODO: Deal with this?
-			self.location="lobby.html";
+			username = prompt("Welcome to the game! What would you like to be called?", "");
+			sessionStorage.setItem("username", username);
+			// self.location="lobby.html";
 		}
 	} else {
 		// User's browser doesn't support Web Storage
