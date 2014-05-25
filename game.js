@@ -148,6 +148,19 @@ function handleWS(data) {
 	switch(data.type) {
 	case 'response':
 		console.log("Server response: " + data.status);
+		switch(data.status) {
+		case 'ok':
+			console.log("Player status OK, registered with server.");
+			break;
+		case 'full':
+			console.log("Room is full.");
+		case 'closed':
+			console.log("Game in progress.");
+		default:
+			console.log("Player joining as unregistered spectator.");
+			makeSpectator();
+			break;
+		}
 		break;
 
 	case 'setteam':
@@ -209,6 +222,14 @@ function update(data) {
 	}
 }
 
+function makeSpectator() {
+	$('#chatinput').on('keyup', null);
+	$('#chatinput').fadeOut(400, function() {
+		$(this).remove();
+	});
+	notifyTeam('spectator', null);
+}
+
 /*
  * Sends a message to the server that this player is ready to begin.
  */
@@ -237,6 +258,12 @@ function notifyTeam(team, info) {
 
 	case 'resistance':
 		prompt = "<button class=\"hideshow\">Show/Hide Alignment</button><div class=\"resist\" hidden>You are on the <i>Resistance</i>. Your goal is to <i>succeed</i>  three of the five missions.<br> " + info + " of your fellow players are secretly <span style='color:#c00;'>Spies</span>, who wish to sabotage your missions.<br>Do not allow the <span style='color:#c00;'>Spies</span> to win.</div>";
+		break;
+	case 'spectator':
+		prompt = "<div class=\"light\" hidden>You are a <i>Spectator</i>. You have no influence on the game, but you can still follow along with the action.</div>";
+		$('#prompt').fadeOut(400, function () {
+			$(this).remove();
+		});
 		break;
 	default:
 		console.log("Malformed team assignment! " + team + " " + info);

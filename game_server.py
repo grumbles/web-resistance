@@ -99,7 +99,8 @@ class PlayerSocketProtocol(WebSocketServerProtocol):
 
     def connectionLost(self, reason):
         WebSocketServerProtocol.connectionLost(self, reason)
-        self.player.destroy()
+        if hasattr(self, 'player'):
+            self.player.destroy()
 
     def setPlayer(self, player):
         self.player = player
@@ -158,13 +159,18 @@ class Game(object):
         return len(self.players)
 
     def addPlayer(self, user, username):
-        if self.getPlayerCount() < Game.MAX_PLAYERS:
-            print("Adding player " + username + " to room " + self.roomName)
-            self.players.append(Player(user, username, self))
-            self.pushUpdate()
-            return 'ok'
+        if self.gameState == Game.PREGAME:
+            if self.getPlayerCount() < Game.MAX_PLAYERS:
+                print("Adding player " + username + " to room " + self.roomName)
+                self.players.append(Player(user, username, self))
+                self.pushUpdate()
+                return 'ok'
+            else:
+                self.pushUpdate()
+                return 'full'
         else:
-            return 'full'
+            self.pushUpdate()
+            return 'closed'
 
     def removePlayer(self, player):
         self.players.remove(player)
