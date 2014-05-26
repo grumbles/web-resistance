@@ -15,9 +15,7 @@ class Player(object):
         socket.setPlayer(self)
         self.name = username
         self.game = game
-        self.team = 'resistance'
-        self.vote = None
-        self.ready = False
+        self.resetState()
 
     def setTeam(self, team):
         self.team = team
@@ -45,6 +43,11 @@ class Player(object):
 
     def sendData(self, data):
         self.socket.sendMessage(json.dumps(data))
+
+    def resetState(self):
+        self.team = 'resistance'
+        self.vote = None
+        self.ready = False
 
     def destroy(self):
         """ Callback on user disconnect """
@@ -159,7 +162,7 @@ class Game(object):
         return len(self.players)
 
     def addPlayer(self, user, username):
-        if self.gameState == Game.PREGAME:
+        if self.gameState == Game.PREGAME or self.gameState == Game.POSTGAME:
             if self.getPlayerCount() < Game.MAX_PLAYERS:
                 print("Adding player " + username + " to room " + self.roomName)
                 self.players.append(Player(user, username, self))
@@ -388,8 +391,13 @@ class Game(object):
 
     def notifyWinners(self, winner):
         com = {'type': 'victory', 'winner': winner, 'spies': [str(p) for p in self.spies]}
+        self.wampdispatch(self.channel, com)
         for p in self.players:
-            p.sendData(com)
+            p.resetState()
+
+        # com = {'type': 'victory', 'winner': winner, 'spies': [str(p) for p in self.spies]}
+        # for p in self.players:
+        #     p.sendData(com)        
 
     def logGameEvent(self, message):
         """
