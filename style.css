@@ -26,8 +26,7 @@ button:hover {
 
 #statusbar {
 	position: relative;
-	height: 150px;
-	padding: 20px;
+	padding: 2px;
 }
 
 #rejectbox {
@@ -42,10 +41,8 @@ button:hover {
 }
 
 #prompt {
-	position: absolute;
-	bottom: 2px;
-	left: 30%;
-	right: 30%;
+	margin: 0 auto;
+	width: 400px;
 }
 
 #game {

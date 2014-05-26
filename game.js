@@ -104,6 +104,11 @@ function initWAMP(room) {
 				$('#messagelog .message:first .chatmsg').css('font-style', 'italic');
 				break;
 
+				case 'victory':
+				notifyVictory(event.winner, event.spies);
+				resetState();
+				break;
+
 				default:
 				console.log('Unknown message in channel...');
 				break;
@@ -139,6 +144,9 @@ function initWS(room) {
     sock.onmessage = function(e) {		
 		handleWS(JSON.parse(e.data));
     }
+
+	// Now that WS connection is initialized, reset game state to let the player signal ready.
+	resetState();
 }
 
 function handleWS(data) {
@@ -178,14 +186,15 @@ function handleWS(data) {
 	case 'mission':
 		promptMission(data.special);
 		break;
-		
-	case 'victory':
-		notifyVictory(data.winner, data.spies);
-		break;
-		
+				
 	default:
 		console.log("Unrecognized message from server!");
 	}
+}
+
+function resetState() {
+	$('#prompt').append('<button id="setready" onclick="setReady()" hidden>I am ready to begin a new game.</button>');
+	$('#setready').fadeIn(400);
 }
 
 /*
@@ -236,6 +245,7 @@ function makeSpectator() {
 function setReady() {
 	$("#prompt").append('<i hidden>Waiting on other players...</i>');
 	$("#setready").fadeOut(400, function() {
+		$(this).remove();
 		$("#prompt i").fadeIn(400);
 		sock.send(['ready', '']);
 	});
