@@ -243,10 +243,13 @@ function makeSpectator() {
  * Sends a message to the server that this player is ready to begin.
  */
 function setReady() {
-	$("#prompt").append('<i hidden>Waiting on other players...</i>');
-	$("#setready").fadeOut(400, function() {
-		$(this).remove();
-		$("#prompt i").fadeIn(400);
+	var prompt = $('#prompt');
+
+	$('#setready').fadeOut(400, function() {
+		prompt.empty();
+		prompt.removeClass('spies resist')
+		prompt.append('<i hidden>Waiting on other players...</i>');
+		$('#prompt i').fadeIn(400);
 		sock.send(['ready', '']);
 	});
 }
@@ -278,8 +281,8 @@ function notifyTeam(team, info) {
 	default:
 		console.log("Malformed team assignment! " + team + " " + info);
 	}
-
-	$('#pregame').replaceWith(prompt);
+	$('#state div, #state button').remove();
+	$(prompt).insertAfter('#state table');
 	$('#statusbar [hidden]').fadeIn(2000);
 	$('button.hideshow').click(function() {
 		$('div.spies, div.resist').toggle(1000);
@@ -387,6 +390,8 @@ function setMission(index, value) {
 	case 'R':
 		mission.addClass('resist');
 		break;
+	default:
+		mission.removeClass('spies resist');
 	}
 	mission.text(value);
 }
